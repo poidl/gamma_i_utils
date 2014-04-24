@@ -10,33 +10,32 @@ function gamma_i = gamma_3d(SA,CT,p,lon,lat)
 
 %Initial estimate of the neutral surface - it would be better to use a
 %locally referenced density surface.
-%gamma_initial = gamma_rf(SA,CT); % (SA,CT,p,lon,lat);
+gamma_initial = gamma_rf(SA,CT); % (SA,CT,p,lon,lat);
 
-% analytic initial condition:
-gamma_initial=ones(nz,ny,nx);
-mid=repmat([1 2 3]',[1 3]);
-south=mid-0.4;
-north=mid+0.4;
-gamma_initial(:,1,:)=south;
-gamma_initial(:,2,:)=mid;
-gamma_initial(:,3,:)=north;
-gamma_initial(isnan(SA(:)))=nan;
-gi=gamma_initial; % this is the analytic solution;
-%gamma_initial=gi+1e-1*randn(size(gi)); % perturb analytic solution to create interesting initial condition
-gamma_initial(13:15)=gi(13:15);
+% % analytic initial condition:
+% gamma_initial=ones(nz,ny,nx);
+% mid=repmat([1 2 3]',[1 3]);
+% south=mid-0.4;
+% north=mid+0.4;
+% gamma_initial(:,1,:)=south;
+% gamma_initial(:,2,:)=mid;
+% gamma_initial(:,3,:)=north;
+% gamma_initial(isnan(SA(:)))=nan;
+% gi=gamma_initial; % this is the analytic solution;
+% %gamma_initial=gi+1e-1*randn(size(gi)); % perturb analytic solution to create interesting initial condition
+% gamma_initial(13:15)=gi(13:15);
 
 %keyboard
 % save_netcdf03(gamma_initial,'gamma_initial','gamma_initial.nc')
 % save_netcdf03(gamma_initial-gamma_96,'gamma_diff','gamma_diff.nc')
 
 
-
-zonally_periodic=true;
+user_input;
 
 % %load gk_interp_gamma_boundary
 % [I_bg, gamma_bdry] = gamma_boundary_gammas(gamma_initial,lon,lat);
 
-write=false;
+write=true;
 if 1
     % east
     [k_east,r_east] = gamma_intersections(SA,CT,p,-ny);
@@ -45,44 +44,31 @@ if 1
         r_east(:,:,end)=nan;
     end
 
-    if write
-        vars = {'k_east', 'r_east'};
-        save('./data/intersections_east.mat', vars{:});
-    end
-
     % west
     [k_west,r_west] = gamma_intersections(SA,CT,p,ny);
     if ~zonally_periodic
         k_west(:,:,1)=nan;
         r_west(:,:,1)=nan;
     end
-    if write        
-        vars = {'k_west', 'r_west'};
-        save('./data/intersections_west.mat', vars{:});
-    end
     
     % north
     [k_north,r_north] = gamma_intersections(SA,CT,p,-1);
     k_north(:,end,:)=nan;
     r_north(:,end,:)=nan;
-    if write    
-        vars = {'k_north', 'r_north'};
-        save('./data/intersections_north.mat', vars{:});
-    end
     
     % south
     [k_south,r_south] = gamma_intersections(SA,CT,p,1);
     k_south(:,1,:)=nan;
     r_south(:,1,:)=nan;
+    
     if write   
-        vars = {'k_south', 'r_south'};
-        save('./data/intersections_south.mat', vars{:});   
+        vars = {'k_east', 'r_east','k_west', 'r_west',...
+            'k_north', 'r_north','k_south', 'r_south'};
+        save('./data/intersections.mat', vars{:});  
     end
+    
 else    
-    load('./data/intersections_east.mat');
-    load('./data/intersections_west.mat');
-    load('./data/intersections_north.mat');
-    load('./data/intersections_south.mat');    
+    load('./data/intersections.mat');  
 end
 
 gam=~isnan(gamma_initial(:));
@@ -167,10 +153,10 @@ for ix=1:nox
 end
 %gam
 
-i_e_lower=i_e; % row index of matrix coef. -r
-i_w_lower=i_w;
-i_n_lower=i_n;
-i_s_lower=i_s;
+% i_e_lower=i_e; % row index of matrix coef. -r
+% i_w_lower=i_w;
+% i_n_lower=i_n;
+% i_s_lower=i_s;
 i_e_lower=i_e(j_e_l); % row index of matrix coef. -r
 i_w_lower=i_w(j_w_l);
 i_n_lower=i_n(j_n_l);
@@ -178,13 +164,14 @@ i_s_lower=i_s(j_s_l);
 
 
 % boundary
-bdy= 170<=lon(:) & lon(:)<=270 & -10<=lat(:) & lat(:)<=10;
+%bdy= 170<=lon(:) & lon(:)<=270 & -10<=lat(:) & lat(:)<=10;
+bdy= 170<=lon(:) & lon(:)<=270 & -1<=lat(:) & lat(:)<=1;
 bdy= gam & bdy;
 j1_bdy= sreg(bdy); % column indices for matrix coef. 1
 i1_bdy=(neq+1:neq+sum(bdy));
 neq_lateral=neq;
 neq_total=neq+sum(bdy);
-    
+%keyboard
 
 irow=[i1,i_e,i_e_lower,...
          i_w,i_w_lower,...
@@ -232,6 +219,9 @@ gamma = lsqr(A,b,1e-15,10000,[],[],gamma_initial(:));
 gamma_i=nan*gam;
 gamma_i(gam)=gamma;
 gamma_i=reshape(gamma_i,[nz,ny,nx]);
+
+vars={'gamma_i','gamma_initial','A','b'};
+save('data/lsqr_input.mat',vars{:});
 keyboard
 end
 
