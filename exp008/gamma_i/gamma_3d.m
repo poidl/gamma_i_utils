@@ -11,6 +11,8 @@ function gamma_i = gamma_3d(SA,CT,p,lon,lat)
 %Initial estimate of the neutral surface - it would be better to use a
 %locally referenced density surface.
 gamma_initial = gamma_rf(SA,CT); % (SA,CT,p,lon,lat);
+save('data/gamma_initial.mat','gamma_initial','SA','CT','p')
+keyboard
 
 % l1=(1:nz)';
 % l2=repmat(l1,[1,ny]);
