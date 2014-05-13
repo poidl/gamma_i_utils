@@ -1,4 +1,4 @@
-function err = error_3d(va,sa,ct,p)
+function [err,values] = error_3d(va,sa,ct,p)
 
     user_input;
 

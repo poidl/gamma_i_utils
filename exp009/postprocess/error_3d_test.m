@@ -6,14 +6,14 @@ addpath(genpath('..'))
 
 load('../data/gamma_initial.mat')
 
-e1=error_3d(gamma_initial,SA,CT,p);
+[e1,values1]=error_3d(gamma_initial,SA,CT,p);
 
 load('../data/gamma_i.mat')
 
-e2=error_3d(gamma_i,SA,CT,p);
+[e2,values2]=error_3d(gamma_i,SA,CT,p);
 
-plot(e1)
+plot(values1,e1)
 hold on
-plot(e2)
-plot(e2,'o')
+plot(values2,e2)
+plot(values2,e2,'o')
 keyboard

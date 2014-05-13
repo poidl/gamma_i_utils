@@ -11,7 +11,10 @@ function gamma_i = gamma_3d(SA,CT,p,lon,lat)
 %Initial estimate of the neutral surface - it would be better to use a
 %locally referenced density surface.
 gamma_initial = gamma_rf(SA,CT); % (SA,CT,p,lon,lat);
+%gamma_initial(:)=0;
+
 gi=gamma_initial;
+
 save('data/gamma_initial.mat','gamma_initial','SA','CT','p')
 
 %sum(~isnan(gamma_initial(:)))
@@ -219,41 +222,77 @@ coeff=[ones(neq_lateral,1); -(1-r_e); -r_e(j_e_l); ...
 
 A = sparse(irow,jcol,coeff,neq_total,nox);
 
+%bdy_vals=ones(sum(bdy(gam)),1);
+%b=[zeros(neq_lateral,1); bdy_vals];
 b=[zeros(neq_lateral,1); w_bdy*gamma_initial(bdy(gam))];
-%b=[zeros(neq_lateral,1); (1:101)'];
-%reshape(gamma_initial,[nz,ny,nx])
+
 if 1
     %gamma = lsqr(A,b,1e-15,10000,[],[],gamma_initial(:));
-    [gamma,flag,relres,iter,resvec,lsvec] = lsqr(A,b,1e-15,100,[],[],gamma_initial(:));
+    [gamma,flag,relres,iter,resvec,lsvec] = lsqr(A,b,1e-15,7000,[],[],gamma_initial(:));
     %keyboard
-    mynorm=lsvec./resvec(2:end);
+    if length(lsvec)==length(resvec)
+        mynorm=lsvec./resvec;
+    else
+        mynorm=lsvec./resvec(2:end);
+    end
     disp(['Arnorm/(anorm*rnorm) final: ', num2str(mynorm(end))])
+    disp(['Flag: ', num2str(flag)])
 else
     gamma = (A'*A)\(A'*b);
 end
+% set points where no equation exists to nan (they still have the same values as the initial condition)
+no_equation=all(A==0);
+gamma(no_equation)=nan;
 gamma_i=nan*gam;
 gamma_i(gam)=gamma;
 gamma_i=reshape(gamma_i,[nz,ny,nx]);
 
+
 save('data/gamma_i.mat','gamma_i')
 
-figure()
-va=squeeze(gamma_i(:,:,1));
-%h=imagesc(lats(1,:,1),p(:,1,1),va);
-h=imagesc(va);
-set(h,'alphadata',~isnan(va))
-rpot=gsw_rho(SA,CT,0*p);
-figure()
-va=squeeze(rpot(:,:,1));
-%h=imagesc(lats(1,:,1),p(:,1,1),va);
-h=imagesc(va);
-set(h,'alphadata',~isnan(va))
+gamma_i(isnan(SA(:)))=nan;
+plt( squeeze(gamma_i(:,:,1)) );
+% rpot=gsw_rho(SA,CT,0*p);
+% plt( squeeze(rpot(:,:,1)) );
+
+%keyboard
+%cregs=find_coupled(A);
+
 
 vars={'gamma_i','gamma_initial','A','b'};
 save('data/lsqr_input.mat',vars{:});
 keyboard
 end
 
+function cregs=find_coupled(A)
+    error('this doesn''t work I think?')
+    [m,n]=size(A);
+    cregs=nan*ones(n,1);
+
+    done_r=[];
+    list_r=1; % row list
+    ireg=1;
+    keyboard
+    while any(isnan(cregs))
+        while ~isempty(list_r);
+            r=list_r(1);
+            cols=find(A(r,:)~=0);
+            cregs(cols)=ireg;
+            for c=cols
+                rows=find(A(:,c)~=0);
+                list_r=[list_r;rows];
+            end   
+            list_r=unique(list_r);            
+            done_r=[done_r,r];
+            list_r=setdiff(list_r,done_r);
+        end
+        keyboard
+        A=A(~done_r,:);
+        done_r=[];
+        list_r=1; % row list
+        ireg=ireg+1;
+    end 
+end
 
 % function [j,j_lower]=get_jcols(sreg,shift,k)
 %     good=~isnan(k(:));
@@ -299,5 +338,13 @@ function var=flatten3d(var)
     tt=repmat(tt,[nz,1]);  
     var=var+tt;
     var=var(:);  
+end
+
+function plt(va)
+    figure()
+    %h=imagesc(lats(1,:,1),p(:,1,1),va);
+    h=imagesc(va);
+    set(h,'alphadata',~isnan(va))
+    colorbar()
 end
 

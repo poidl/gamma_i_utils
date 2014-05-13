@@ -85,6 +85,10 @@ va=squeeze(ct(:,:,1));
 h=imagesc(va);
 set(h,'alphadata',~isnan(va))
 
+% create barrier
+%s(6:end,15,:)=nan;
+%ct(6:end,15,:)=nan;
+
 
 % fill isolated depressions
 %s(77:end,37,:)=nan;
@@ -100,11 +104,9 @@ set(h,'alphadata',~isnan(va))
 %s(nans)=nan;
 %ct(nans)=nan;
 
-figure()
-va=squeeze(ct(:,:,1));
-%h=imagesc(lats(1,:,1),p(:,1,1),va);
-h=imagesc(va);
-set(h,'alphadata',~isnan(va))
+plt_transect
+
+%keyboard
 
 lon=longs;
 lat=lats;
