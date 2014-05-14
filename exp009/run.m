@@ -39,6 +39,7 @@ addpath(genpath('.'))
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 subsample_gk_ak_gamma
 
+
 %load('data/input_data_idealized.mat')
 
 % remove nan points floating in the ocean:
@@ -62,6 +63,15 @@ save('data/input_data.mat',vars{:})
 
 zero_hel_no_continents_width1
 
+% the lats/longs are only used to calculate epsilon in error_3d()
+[nnz,nny]=size(lats);
+if (nnz~=101) & (nny~=43)
+    error('error dx dy')
+end
+
+la=lats(1,:)
+dy=scale_fac(la',0*la')
+save('data/dy.mat', 'dy') 
 
 % remove all except largest region
 regions=find_regions(squeeze(s(1,:,:)));
@@ -113,9 +123,4 @@ lat=lats;
 
 
 gamma_i = gamma_3d(s,ct,p,lon,lat);
-
-
-
-
-
 

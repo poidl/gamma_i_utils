@@ -1,1 +1,1 @@
-zonally_periodic=true;
+zonally_periodic=false;

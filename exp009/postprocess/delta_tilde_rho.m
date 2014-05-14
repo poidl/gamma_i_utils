@@ -26,7 +26,7 @@ r2=gsw_rho( circshift(sns, [0 -1])  , circshift( ctns, [0 -1]) ,pmid);
 
 drhodx=r2-r1;
 
-if ~zonally_periodic;
+if ~zonally_periodic & xi~=1; % don't set easternmost values to nan for a meridional transect
     drhodx(:,xi) = nan;
 end
 
