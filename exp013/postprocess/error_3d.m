@@ -103,12 +103,17 @@ function [sx,sy,ss,cts,ps]=slope_error(va,sa,ct,p,value)
     %facx=0.5*(fac+circshift(fac,[0 -1]));
     %facy=0.5*(fac+circshift(fac,[-1 0]));
 
-    if nx~=1
-        error('zonal transect?')
-    end
+
     load('data/dy.mat')
-    dy=0.5*(dy(1:end-1)+dy(2:end));
-    dy=[dy; dy(end)]; % sloppy
+
+    if nx~=1
+        dx=0.5*(dx(:,1:end-1)+dy(:,2:end));
+        dx=horzcat(dx, dx(:,end)); % sloppy 
+        ex=ex./dx;
+    end
+    dy=0.5*(dy(1:end-1,:)+dy(2:end,:));
+    dy=vertcat(dy, dy(end,:)); % sloppy
+    
     ey=ey./dy;
     
     sx=fac.*ex;

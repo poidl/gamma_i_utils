@@ -13,6 +13,13 @@ function gamma_i = gamma_3d(SA,CT,p,lon,lat)
 gamma_initial = gamma_rf(SA,CT); % (SA,CT,p,lon,lat);
 %gamma_initial(:)=0;
 
+% boundary
+%bdy= 170<=lon(:) & lon(:)<=270 & -10<=lat(:) & lat(:)<=10;
+bdy= 170<=lon(:) & lon(:)<=270 & -1<=lat(:) & lat(:)<=1;
+p_bb=p(bdy);
+%keyboard
+gamma_initial=f2g(gamma_initial,p_bb,22,1);
+
 %gamma_initial=p/max(p(:));
 
 gi=gamma_initial;
@@ -177,9 +184,6 @@ i_s_lower=i_s(j_s_l);
 
 
 % boundary
-%bdy= 170<=lon(:) & lon(:)<=270 & -10<=lat(:) & lat(:)<=10;
-bdy= 170<=lon(:) & lon(:)<=270 & -1<=lat(:) & lat(:)<=1;
-
 bdy= gam & bdy;
 j1_bdy= sreg(bdy); % column indices for matrix coef. 1
 i1_bdy=(neq+1:neq+sum(bdy));

@@ -34,15 +34,12 @@ xlabel('\gamma^{rf} (black), \gamma^{i} (red)')
 % plot(g_bb,vdiff_pressure,'bv')
 % 
 
-
-
 xlim([26.2,28])
 print('-dpng','-r200',['../figures/D_f.png'])
 
 figure()
 hist(gamma_i(:),50)
 xlim([26.2,28])
-save('../data/plots.mat','values2','vdiff2','gamma_i')
 
 %print('-dpdf','-r200',['../figures/hist.pdf'])
 

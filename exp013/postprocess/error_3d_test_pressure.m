@@ -13,7 +13,17 @@ load('../data/gamma_i.mat')
 [s_pressure,values_pressure]=error_3d(gamma_i,SA,CT,p);
 
 
-[s2,values2]=error_3d(gamma_i,SA,CT,p);
+load('data/input_data.mat')
+bdy= 170<=longs(:) & longs(:)<=270 & -1<=lats(:) & lats(:)<=1;
+
+bdy_pressure=gamma_initial(bdy);
+
+g=gamma_rf(s(bdy),ct(bdy))
+g_bb=interp1(bdy_pressure,g,values_pressure);
+
+gamma_i=f2g(gamma_i,g,22,1); % transfer to g
+
+[s2,values2]=error_3d(gamma_i,SA,CT,p,g_bb);
 K=1e3;
 vdiff1=K*s1;
 vdiff2=K*s2;
@@ -29,21 +39,18 @@ title('D_f [m^s/s]')
 xlabel('\gamma^{rf} (black), \gamma^{i} (red)')
 
 
-% plot(g_bb,vdiff_pressure,'b')
-% hold on
-% plot(g_bb,vdiff_pressure,'bv')
-% 
-
-
+plot(g_bb,vdiff_pressure,'b')
+hold on
+plot(g_bb,vdiff_pressure,'bv')
+%keyboard;
 
 xlim([26.2,28])
-print('-dpng','-r200',['../figures/D_f.png'])
+print('-dpdf','-r200',['../figures/D_f_pressure.png'])
 
 figure()
 hist(gamma_i(:),50)
 xlim([26.2,28])
-save('../data/plots.mat','values2','vdiff2','gamma_i')
 
-%print('-dpdf','-r200',['../figures/hist.pdf'])
+print('-dpdf','-r200',['../figures/hist.png'])
 
 
