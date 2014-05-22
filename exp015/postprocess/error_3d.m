@@ -23,7 +23,7 @@ function [err,values] = error_3d(va,sa,ct,p,vals)
 
     for ii=1:length(values)
         [sx,sy,ss,cts,ps]=slope_error(va,sa,ct,p,values(ii));
-        s=sx.^2+sy.^2;
+        s=sqrt(sx.^2+sy.^2);
         sbar(ii)=nanmean(s(:));
     end
     
@@ -103,17 +103,12 @@ function [sx,sy,ss,cts,ps]=slope_error(va,sa,ct,p,value)
     %facx=0.5*(fac+circshift(fac,[0 -1]));
     %facy=0.5*(fac+circshift(fac,[-1 0]));
 
-
-    load('data/dy.mat')
-
     if nx~=1
-        dx=0.5*(dx(:,1:end-1)+dx(:,2:end));
-        dx=horzcat(dx(:,end), dx); % sloppy 
-        ex=ex./dx;
+        error('zonal transect?')
     end
-    dy=0.5*(dy(1:end-1,:)+dy(2:end,:));
-    dy=vertcat(dy(end,:), dy); % sloppy
-    
+    load('data/dy.mat')
+    dy=0.5*(dy(1:end-1)+dy(2:end));
+    dy=[dy(end); dy]; % sloppy
     ey=ey./dy;
     
     sx=ex./fac;

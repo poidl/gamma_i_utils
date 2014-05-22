@@ -37,7 +37,6 @@ xlabel('\gamma^{rf} (black), \gamma^{i} (red)')
 
 
 xlim([26.2,28])
-%ylim([0 1.6e-8])
 print('-dpng','-r200',['../figures/D_f.png'])
 
 figure()

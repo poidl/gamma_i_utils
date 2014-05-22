@@ -26,7 +26,8 @@ xl1=26.2
 xl2=28;
 
 xlim([xl1,xl2]);
-ylim([0 2e-8])
+ylim([0 0.15e-6])
+%ylim([0 0.3e-7])
 ylabel('D_f [m^s/s]')
 %xlabel('\gamma^{rf} (black), \gamma^{i} (red)')
 ax1=gca;

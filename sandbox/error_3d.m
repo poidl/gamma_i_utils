@@ -107,12 +107,12 @@ function [sx,sy,ss,cts,ps]=slope_error(va,sa,ct,p,value)
     load('data/dy.mat')
 
     if nx~=1
-        dx=0.5*(dx(:,1:end-1)+dx(:,2:end));
-        dx=horzcat(dx(:,end), dx); % sloppy 
+        dx=0.5*(dx(:,1:end-1)+dy(:,2:end));
+        dx=horzcat(dx, dx(:,end)); % sloppy 
         ex=ex./dx;
     end
     dy=0.5*(dy(1:end-1,:)+dy(2:end,:));
-    dy=vertcat(dy(end,:), dy); % sloppy
+    dy=vertcat(dy, dy(end,:)); % sloppy
     
     ey=ey./dy;
     

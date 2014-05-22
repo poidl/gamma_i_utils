@@ -23,7 +23,7 @@ function [err,values] = error_3d(va,sa,ct,p,vals)
 
     for ii=1:length(values)
         [sx,sy,ss,cts,ps]=slope_error(va,sa,ct,p,values(ii));
-        s=sqrt(sx.^2+sy.^2);
+        s=sx.^2+sy.^2;
         sbar(ii)=nanmean(s(:));
     end
     
@@ -108,11 +108,11 @@ function [sx,sy,ss,cts,ps]=slope_error(va,sa,ct,p,value)
     end
     load('data/dy.mat')
     dy=0.5*(dy(1:end-1)+dy(2:end));
-    dy=[dy; dy(end)]; % sloppy
+    dy=[dy(end); dy]; % sloppy
     ey=ey./dy;
     
-    sx=fac.*ex;
-    sy=fac.*ey;
+    sx=ex./fac;
+    sy=ey./fac;
 
 end
 

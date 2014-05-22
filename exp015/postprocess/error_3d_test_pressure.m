@@ -6,11 +6,10 @@ addpath(genpath('..'))
 
 load('../data/gamma_initial.mat')
 
-%[s1,values1]=error_3d(gamma_initial,SA,CT,p);
+[s1,values1]=error_3d(gamma_initial,SA,CT,p);
 
 load('../data/gamma_i.mat')
-%load('../..exp010/data/plots.mat')
-%keyboard
+
 [s_pressure,values_pressure]=error_3d(gamma_i,SA,CT,p);
 
 
@@ -26,7 +25,7 @@ gamma_i=f2g(gamma_i,g,22,1); % transfer to g
 
 [s2,values2]=error_3d(gamma_i,SA,CT,p,g_bb);
 K=1e3;
-%vdiff1=K*s1;
+vdiff1=K*s1;
 vdiff2=K*s2;
 vdiff_pressure=K*s_pressure;
 
@@ -45,15 +44,13 @@ hold on
 plot(g_bb,vdiff_pressure,'bv')
 %keyboard;
 
-save('../data/plots.mat','g_bb','vdiff_pressure')
-
 xlim([26.2,28])
-print('-dpng','-r200',['../figures/D_f_pressure.png'])
+print('-dpdf','-r200',['../figures/D_f_pressure.png'])
 
 figure()
 hist(gamma_i(:),50)
 xlim([26.2,28])
 
-print('-dpng','-r200',['../figures/hist.png'])
+print('-dpdf','-r200',['../figures/hist.png'])
 
 
