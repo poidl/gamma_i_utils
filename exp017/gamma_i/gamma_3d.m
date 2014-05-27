@@ -17,8 +17,8 @@ gamma_initial = gamma_rf(SA,CT); % (SA,CT,p,lon,lat);
 
 gi=gamma_initial;
 
-save('data/gamma_initial.mat','gamma_initial','SA','CT','p','lon','lat')
-keyboard
+save('data/gamma_initial.mat','gamma_initial','SA','CT','p')
+
 %sum(~isnan(gamma_initial(:)))
 
 % l1=(1:nz)';
@@ -48,7 +48,7 @@ user_input;
 % %load gk_interp_gamma_boundary
 % [I_bg, gamma_bdry] = gamma_boundary_gammas(gamma_initial,lon,lat);
 
-if 0
+if 1
     write=false;
     % east
     [k_east,r_east] = gamma_intersections(SA,CT,p,-ny);
@@ -178,7 +178,7 @@ i_s_lower=i_s(j_s_l);
 
 % boundary
 %bdy= 170<=lon(:) & lon(:)<=270 & -10<=lat(:) & lat(:)<=10;
-bdy= 187<=lon(:) & lon(:)<=189 & -17<=lat(:) & lat(:)<=-15; % 16 S, 188 E
+bdy= 170<=lon(:) & lon(:)<=270 & -1<=lat(:) & lat(:)<=1;
 
 bdy= gam & bdy;
 j1_bdy= sreg(bdy); % column indices for matrix coef. 1
@@ -230,8 +230,7 @@ b=[zeros(neq_lateral,1); w_bdy*gamma_initial(bdy(gam))];
 
 if 1
     %gamma = lsqr(A,b,1e-15,10000,[],[],gamma_initial(:));
-    disp('starting LSQR()')
-    [gamma,flag,relres,iter,resvec,lsvec] = lsqr(A,b,1e-15,10000,[],[],gamma_initial(:));
+    [gamma,flag,relres,iter,resvec,lsvec] = lsqr(A,b,1e-15,7000,[],[],gamma_initial(:));
     %keyboard
     if length(lsvec)==length(resvec)
         mynorm=lsvec./resvec;
@@ -244,9 +243,7 @@ else
     gamma = (A'*A)\(A'*b);
 end
 % set points where no equation exists to nan (their value hasn't changed from the initial condition)
-su=sum(abs(A));
-no_equation=su==0;
-%no_equation=all(A==0);
+no_equation=all(A==0);
 gamma(no_equation)=nan;
 gamma_i=nan*gam;
 gamma_i(gam)=gamma;

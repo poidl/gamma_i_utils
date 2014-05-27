@@ -5,18 +5,18 @@ function err=error_grid(va,s,ct,p)
 
     user_input;
     [nz,ny,nx]=size(s);
+
+    % interpolate dx and dy onto grid points 
+    if nx~=1
+        dx=0.5*(circshift(dx,[0 1])+dx);
+    end
     
+    dy=0.5*(circshift(dy,[1 0])+dy);
+
+    dx=repmat(permute(dx,[3 1 2]),[nz 1 1 ]);
+    dy=repmat(permute(dy,[3 1 2]),[nz 1 1 ]);
+
     if 0
-        % interpolate dx and dy onto grid points 
-        if nx~=1
-            dx=0.5*(circshift(dx,[0 1])+dx);
-        end
-
-        dy=0.5*(circshift(dy,[1 0])+dy);
-
-        dx=repmat(permute(dx,[3 1 2]),[nz 1 1 ]);
-        dy=repmat(permute(dy,[3 1 2]),[nz 1 1 ]);
-
         [vx,vy,vz]=gradient(va,p,dx,dy);
         vx=vx./vz; % slope of va: x-component
         vy=vy./vz; % slope of va: y-component
@@ -24,34 +24,21 @@ function err=error_grid(va,s,ct,p)
         [sx,sy]=error_horz(s,ct,p,dx,dy);
 
         sdx= vx-sx;
-        sdy= vy-sy;     
+        sdy= vy-sy;
+        
     else
         
-        [sdx,sdy]=error_iso(va,s,ct,p,dx,dy);
+        [sdx,sdy]=error_iso(va,s,ct,p,squeeze(dx(1,:,:)),squeeze(dy(1,:,:)));
     end
     
-    sdx2=sdx(:).^2;
-    sdy2=sdy(:).^2;
-    
-    ix=~isnan(sdx2) & isnan(sdy2);
-    iy=isnan(sdx2) & ~isnan(sdy2);
-    both=~isnan(sdx2) & ~isnan(sdy2);
-    
-    s2=nan*sdx;
-    s2(ix)=sdx2(ix);
-    s2(iy)=sdy2(iy);
-    s2(both)=sdx2(both)+sdy2(both);
-    
+    s2=sdx.^2+sdy.^2;
     K=1e3;
     err=K*s2;
     
 end
 
-
 function [sdx,sdy]=error_iso(va,s,ct,p,dx,dy)
 
-    user_input
-    
     [nz,ny,nx]=size(s);
     
     sdx=nan*ones(size(s));
@@ -62,46 +49,56 @@ function [sdx,sdy]=error_iso(va,s,ct,p,dx,dy)
     ctn=circshift(ct,[0 0 -1]);
     pn=circshift(p,[0 0 -1]);    
     van=circshift(va,[0 0 -1]); 
-      
+    
+    % south
+    ss=circshift(s,[0 0 1]);
+    cts=circshift(ct,[0 0 1]);
+    ps=circshift(p,[0 0 1]);    
+    vas=circshift(va,[0 0 1]);    
+
     % east
     se=circshift(s,[0 -1 0]);
     cte=circshift(ct,[0 -1 0]);
     pe=circshift(p,[0 -1 0]);    
     vae=circshift(va,[0 -1 0]);
     
-    %for kk=1:nz
-    for kk=20:20    
-        vsurf=squeeze(va(kk,:,:));
+    % west
+    sw=circshift(s,[0 1 0]);
+    ctw=circshift(ct,[0 1 0]);
+    pw=circshift(p,[0 1 0]);    
+    vaw=circshift(va,[0 1 0]);
+    
+    [n2,pmid]=gsw_Nsquared(s,ct,p);
+    n2=reshape(n2,[nz-1,ny,nx]);
+    pmid=reshape(pmid,[nz-1,ny,nx]);
+    
+    for kk=1:nz
+    %for kk=20:20    
+        surf=squeeze(va(kk,:,:));
         
         ssurf=squeeze(s(kk,:,:));
         ctsurf=squeeze(ct(kk,:,:));
         psurf=squeeze(p(kk,:,:));
         
-        vpx=var_on_surf_stef(pe,vae,vsurf);
-        vsx=(vpx-psurf)./dx;        
-        vpy=var_on_surf_stef(pn,van,vsurf);
-        vsy=(vpy-psurf)./dy;
+        drho_x1=dens_diff(van,surf,sn,ctn,pn, ssurf, ctsurf, psurf);
+        drho_x2=-dens_diff(vas,surf,ss,cts,ps, ssurf, ctsurf, psurf);
+        ex=0.5*(drho_x1+drho_x2)./dx;
         
-        [tr,tr,npx]=depth_ntp_simple(ssurf(:)',ctsurf(:)',psurf(:)',se(:,:),cte(:,:),pe(:,:),0*ssurf(:)');
-        npx=reshape(npx,[ny,nx]);
-        nsx=(npx-psurf)./dx;
-        [tr,tr,npy]=depth_ntp_simple(ssurf(:)',ctsurf(:)',psurf(:)',sn(:,:),ctn(:,:),pn(:,:),0*ssurf(:)');
-        npy=reshape(npy,[ny,nx]);
-        nsy=(npy-psurf)./dy;
-        %keyboard
-        sdx(kk,:,:)=vsx-nsx;
-        sdy(kk,:,:)=vsy-nsy;
-%         sdx(kk,:,:)=vsx;
-%         sdy(kk,:,:)=vsy;        
-       
-    end
-    if ~zonally_periodic
-        sdx(:,:,end)=nan;
-    end
-    sdy(:,end,:)=nan;
+        drho_y1=dens_diff(vae,surf,se,cte,pe, ssurf, ctsurf, psurf);
+        drho_y2=dens_diff(vaw,surf,sw,ctw,pw, ssurf, ctsurf, psurf);
+        ey=0.5*(drho_y1+drho_y2)./dy;
+        
+        rhosurf=gsw_rho(ssurf,ctsurf,psurf);
+        n2surf=var_on_surf_stef(n2,pmid,psurf);
+        
+        
+        fac=(1/9.81)*rhosurf.*n2surf;
     
+        sdx(kk,:,:)=ex./fac;
+        sdy(kk,:,:)=ey./fac;
+   
+    end
 end
-
 
 function [drho]=dens_diff(va,surf,s,ct,p, ss, cts, ps)
 
@@ -116,71 +113,6 @@ function [drho]=dens_diff(va,surf,s,ct,p, ss, cts, ps)
 
 
 end
-
-% function [sdx,sdy]=error_iso(va,s,ct,p,dx,dy)
-% 
-%     [nz,ny,nx]=size(s);
-%     
-%     sdx=nan*ones(size(s));
-%     sdy=nan*ones(size(s));
-%     
-%     % north 
-%     sn=circshift(s,[0 0 -1]);
-%     ctn=circshift(ct,[0 0 -1]);
-%     pn=circshift(p,[0 0 -1]);    
-%     van=circshift(va,[0 0 -1]); 
-%     
-%     % south
-%     ss=circshift(s,[0 0 1]);
-%     cts=circshift(ct,[0 0 1]);
-%     ps=circshift(p,[0 0 1]);    
-%     vas=circshift(va,[0 0 1]);    
-% 
-%     % east
-%     se=circshift(s,[0 -1 0]);
-%     cte=circshift(ct,[0 -1 0]);
-%     pe=circshift(p,[0 -1 0]);    
-%     vae=circshift(va,[0 -1 0]);
-%     
-%     % west
-%     sw=circshift(s,[0 1 0]);
-%     ctw=circshift(ct,[0 1 0]);
-%     pw=circshift(p,[0 1 0]);    
-%     vaw=circshift(va,[0 1 0]);
-%     
-%     [n2,pmid]=gsw_Nsquared(s,ct,p);
-%     n2=reshape(n2,[nz-1,ny,nx]);
-%     pmid=reshape(pmid,[nz-1,ny,nx]);
-%     
-%     for kk=1:nz
-%     %for kk=20:20    
-%         surf=squeeze(va(kk,:,:));
-%         
-%         ssurf=squeeze(s(kk,:,:));
-%         ctsurf=squeeze(ct(kk,:,:));
-%         psurf=squeeze(p(kk,:,:));
-%         
-%         drho_x1=dens_diff(van,surf,sn,ctn,pn, ssurf, ctsurf, psurf);
-%         drho_x2=-dens_diff(vas,surf,ss,cts,ps, ssurf, ctsurf, psurf);
-%         ex=0.5*(drho_x1+drho_x2)./dx;
-%         
-%         drho_y1=dens_diff(vae,surf,se,cte,pe, ssurf, ctsurf, psurf);
-%         drho_y2=dens_diff(vaw,surf,sw,ctw,pw, ssurf, ctsurf, psurf);
-%         ey=0.5*(drho_y1+drho_y2)./dy;
-%         
-%         rhosurf=gsw_rho(ssurf,ctsurf,psurf);
-%         n2surf=var_on_surf_stef(n2,pmid,psurf);
-%         
-%         
-%         fac=(1/9.81)*rhosurf.*n2surf;
-%     
-%         sdx(kk,:,:)=ex./fac;
-%         sdy(kk,:,:)=ey./fac;
-%    
-%     end
-% end
-
-
 
 % function   [sx,sy]=error_horz(s,ct,p,dx,dy)
 %     

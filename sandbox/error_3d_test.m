@@ -5,7 +5,7 @@ addpath(genpath('../../../gsw_matlab_v3_02'))
 addpath(genpath('../exp015'))
 addpath(genpath('.'))
 
-load('data/input_data.mat')
+load('data/input_data_gammanc.mat')
 
 [nz,ny,nx]=size(s);
 s(s<-90)=nan;
