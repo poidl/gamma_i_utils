@@ -49,7 +49,7 @@ end
 
 
 function [sdx,sdy]=error_iso(va,s,ct,p,dx,dy)
-    
+
     user_input
     
     [nz,ny,nx]=size(s);
@@ -71,18 +71,11 @@ function [sdx,sdy]=error_iso(va,s,ct,p,dx,dy)
     
     for kk=1:nz
     %for kk=20:20    
-    %keyboard
         vsurf=squeeze(va(kk,:,:));
         
         ssurf=squeeze(s(kk,:,:));
         ctsurf=squeeze(ct(kk,:,:));
         psurf=squeeze(p(kk,:,:));
-        
-        if nx==1
-            ssurf=ssurf';
-            ctsurf=ctsurf';
-            psurf=psurf';
-        end
         
         vpx=var_on_surf_stef(pe,vae,vsurf);
         vsx=(vpx-psurf)./dx;        
@@ -98,8 +91,8 @@ function [sdx,sdy]=error_iso(va,s,ct,p,dx,dy)
         %keyboard
         sdx(kk,:,:)=vsx-nsx;
         sdy(kk,:,:)=vsy-nsy;
-%          sdx(kk,:,:)=nsx;
-%          sdy(kk,:,:)=nsy;        
+%         sdx(kk,:,:)=vsx;
+%         sdy(kk,:,:)=vsy;        
        
     end
     if ~zonally_periodic

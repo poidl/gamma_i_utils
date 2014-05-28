@@ -30,7 +30,6 @@ function [Df,se_ntp,sn_ntp] = diffusivity_gamma_ref(SP,pt,p,gamma,lat,long,se_nt
 %==========================================================================
 
 
-
 %Calculation of the slopes
 if nargin==7
 %   - Gamma ref    

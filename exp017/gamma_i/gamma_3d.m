@@ -17,7 +17,7 @@ gamma_initial = gamma_rf(SA,CT); % (SA,CT,p,lon,lat);
 
 gi=gamma_initial;
 
-save('data/gamma_initial.mat','gamma_initial','SA','CT','p')
+save('data/gamma_initial.mat','gamma_initial','SA','CT','p','lat','lon')
 
 %sum(~isnan(gamma_initial(:)))
 
