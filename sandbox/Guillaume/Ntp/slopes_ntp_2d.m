@@ -68,7 +68,7 @@ for i=1:longitude
     lat0=lat(1,j,i);
     long0=long(1,j,i);
     
-        parfor k=1:depth
+        for k=1:depth
                      
         %Selecting a bottle of the studied cast
         SP0b=SP0(k);
@@ -85,19 +85,30 @@ for i=1:longitude
         se(k,j,i)=nan;
         
         %Computimg of Northern slope
-        [~,~,pns_N] = depth_ntp(SP0b,pt0b,p0b,SPt_N,ptt_N,pt_N);
-        z0b=gsw_z_from_p(p0b,lat0);
-        zns_N=gsw_z_from_p(pns_N,latt_N);
-        deltaz_N=z0b-zns_N;
-        deltay=gsw_distance([long0 longt_N],[lat0 latt_N] ,[p0b pns_N]);
-        sn(k,j,i)=deltaz_N/deltay;
-   
+        [~,~,pns_N] = depth_ntp_jackett(SP0b,pt0b,p0b,SPt_N,ptt_N,pt_N);
+        if pns_N<=-99
+            pns_N=nan;
+        end
+        %keyboard
+%         if j==6 && k==70
+%             keyboard
+%         end
+        if 0
+            z0b=gsw_z_from_p(p0b,lat0);
+            zns_N=gsw_z_from_p(pns_N,latt_N);
+            deltaz_N=z0b-zns_N;
+            deltay=gsw_distance([long0 longt_N],[lat0 latt_N] ,[p0b pns_N]);
+            sn(k,j,i)=deltaz_N/deltay;
+        else
+            deltay=gsw_distance([long0 longt_N],[lat0 latt_N]);
+            %sn(k,j,i)=(pns_N-p0b)/deltay;
+            sn(k,j,i)=pns_N;
+        end
         end
         
     end
     
 end
-
 return
 
 

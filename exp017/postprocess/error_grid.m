@@ -32,7 +32,7 @@ function err=error_grid(va,s,ct,p)
     
     sdx2=sdx(:).^2;
     sdy2=sdy(:).^2;
-    
+
     ix=~isnan(sdx2) & isnan(sdy2);
     iy=isnan(sdx2) & ~isnan(sdy2);
     both=~isnan(sdx2) & ~isnan(sdy2);
@@ -70,7 +70,7 @@ function [sdx,sdy]=error_iso(va,s,ct,p,dx,dy)
     vae=circshift(va,[0 0 -1]);
     
     for kk=1:nz
-    %for kk=20:20    
+    %for kk=70:70    
     %keyboard
         vsurf=squeeze(va(kk,:,:));
         
@@ -86,22 +86,24 @@ function [sdx,sdy]=error_iso(va,s,ct,p,dx,dy)
         
         vpx=var_on_surf_stef(pe,vae,vsurf);
         vsx=(vpx-psurf)./dx;        
+        
         vpy=var_on_surf_stef(pn,van,vsurf);
         vsy=(vpy-psurf)./dy;
-        
+
         [tr,tr,npx]=depth_ntp_simple(ssurf(:)',ctsurf(:)',psurf(:)',se(:,:),cte(:,:),pe(:,:),0*ssurf(:)');
         npx=reshape(npx,[ny,nx]);
         nsx=(npx-psurf)./dx;
+        
         [tr,tr,npy]=depth_ntp_simple(ssurf(:)',ctsurf(:)',psurf(:)',sn(:,:),ctn(:,:),pn(:,:),0*ssurf(:)');
         npy=reshape(npy,[ny,nx]);
         nsy=(npy-psurf)./dy;
-        %keyboard
-        sdx(kk,:,:)=vsx-nsx;
-        sdy(kk,:,:)=vsy-nsy;
-%          sdx(kk,:,:)=nsx;
-%          sdy(kk,:,:)=nsy;        
+        %sdx(kk,:,:)=vsx-nsx;
+        %sdy(kk,:,:)=vsy-nsy;  
+        sdx(kk,:,:)=npx;
+        sdy(kk,:,:)=npy;          
        
     end
+
     if ~zonally_periodic
         sdx(:,:,end)=nan;
     end

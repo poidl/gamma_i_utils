@@ -63,6 +63,8 @@ if ~(nargout == 3)
    error('depth_ntp:  Requires two outputs')
 end 
 
+delta_stef=5e-5;
+
 [msb,nsb] = size(SP0);
 [mtb,ntb] = size(pt0);
 [mpb,npb] = size(p0);
@@ -177,7 +179,8 @@ elseif (e<0&&c<n)
         pc1 = pc0 + ec0/ecz0;
         eps = abs(pc1 - pc0);
         %Testing the accuracy
-        if abs(ec0) <= 5e-5 && eps <= 5e-3
+        %if abs(ec0) <= 5e-5 && eps <= 5e-3
+        if abs(ec0) <= delta_stef && eps <= 5e-3
             if pc0<1e4 
                 SPns = SPc0;
                 ptns = ptc0;
@@ -192,6 +195,7 @@ elseif (e<0&&c<n)
             end
         elseif iter > 10
             [SPns,ptns,pns,niter] = e_solve(SP,pt,p,[e e_d],[c c_d],SP0,pt0,p0);
+            disp('e_solve')
             success = 1;
         else
             pc_0 = pc0;
@@ -262,7 +266,7 @@ elseif (e>0&&c>1)
         pc1 = pc0 + ec0/ecz0;
         eps = abs(pc1 - pc0);
         %Testing the accuracy
-        if (abs(ec0) <= 5e-5 && eps <= 5e-3)
+        if (abs(ec0) <= delta_stef && eps <= 5e-3)
             if pc0<1e4 
                 SPns = SPc0;
                 ptns = ptc0;
@@ -276,6 +280,7 @@ elseif (e>0&&c>1)
                 success = 1;
             end
         elseif iter > 10
+            disp('e_solve')
             [SPns,ptns,pns,niter] = e_solve(SP,pt,p,[e_s e],[c_s c],SP0,pt0,p0);
             success = 1;
         elseif pc1<0

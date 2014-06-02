@@ -91,12 +91,18 @@ for i=1:longitude
 
             %Computing Northern slope
             [~,~,p_gamma_N] = depth_gamma_ref(SP0b,pt0b,p0b,gamma0b,SPt_N,ptt_N,pt_N,gammat_N);
-            z0b=gsw_z_from_p(p0b,lat0);
-            z_gamma_N=gsw_z_from_p(p_gamma_N,latt_N);
-            deltaz_N=z0b-z_gamma_N;
-            deltay=gsw_distance([long0 longt_N],[lat0 latt_N] ,[p0b p_gamma_N]);
-            sn(k,j,i)=deltaz_N/deltay;
-
+            %stef
+            %kup=sum(gammat_N<=gamma0b)
+            if 0
+                z0b=gsw_z_from_p(p0b,lat0);
+                z_gamma_N=gsw_z_from_p(p_gamma_N,latt_N);
+                deltaz_N=z0b-z_gamma_N;
+                deltay=gsw_distance([long0 longt_N],[lat0 latt_N] ,[p0b p_gamma_N]);
+                sn(k,j,i)=deltaz_N/deltay;
+            else
+                deltay=gsw_distance([long0 longt_N],[lat0 latt_N] ,[p0b p_gamma_N]);
+                sn(k,j,i)=(p_gamma_N-p0b)/deltay;
+            end
         end
         
     end

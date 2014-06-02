@@ -92,6 +92,8 @@ function [SPns,ptns,pns] = depth_gamma_ref(SP0,pt0,p0,gamma0,SP,pt,p,gamma)
 
 n = length(SP);
 
+delta_stef=1e-11;
+
 %1)Looking for the closest pressure to find the starting point
 %-------------------------------------------------------------
 [p_diff c]=min(abs(p-p0)); %c for cast
@@ -174,7 +176,7 @@ elseif (e<0&&c<n)
         pc1 = pc0 + ec0/ecz0;
         eps = abs(pc1 - pc0);
         %Testing the accuracy
-        if abs(ec0) <= 5e-5 && eps <= 5e-3
+        if abs(ec0) <= delta_stef && eps <= 5e-3
             if pc0<1e4 
                 SPns = SPc0;
                 ptns = ptc0;
@@ -258,7 +260,7 @@ elseif (e>0&&c>1)
         pc1 = pc0 + ec0/ecz0;
         eps = abs(pc1 - pc0);
         %Testing the accuracy
-        if abs(ec0) <= 5e-5 && eps <= 5e-3
+        if abs(ec0) <= delta_stef && eps <= 5e-3
             if pc0<1e4 
                 SPns = SPc0;
                 ptns = ptc0;

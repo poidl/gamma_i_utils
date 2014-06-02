@@ -36,4 +36,6 @@ end
 %[Df,se_ntp,sn_ntp] = diffusivity_gamma_ref(s,ct,p,gamma,lat,lon,se_ntp,sn_ntp)
 [Df_guillaume,se_ntp,sn_ntp] = diffusivity_gamma_ref_2d(s,ct,p,gamma,lat,lon);
 
-save_netcdf03(log10(Df_guillaume),'Df_guillaume_2d','data/Df_guillaume_2d.nc')
+%save_netcdf03(log10(Df_guillaume),'sg2_Df_guillaume_2d','data/sg2_Df_guillaume_2d.nc')
+save_netcdf03(log10(Df_guillaume),'sn2_Df_guillaume_2d','data/sn2_Df_guillaume_2d.nc')
+%save_netcdf03(log10(Df_guillaume),'Df_guillaume_2d','data/Df_guillaume_2d.nc')

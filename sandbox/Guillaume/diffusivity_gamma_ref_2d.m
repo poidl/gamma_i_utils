@@ -48,8 +48,10 @@ end
 K=1000;
 
 %Squared difference of slopes
-s2_e=(se_gamma-se_ntp).^2;
-s2_n=(sn_gamma-sn_ntp).^2;
+%s2_e=(se_gamma-se_ntp).^2;
+%s2_n=(sn_gamma-sn_ntp).^2;
+s2_e=(se_ntp).^2;
+s2_n=(sn_ntp).^2;
 
 [depth,lattitude,longitude]=size(SP);
 Df=NaN(depth,lattitude,longitude);
