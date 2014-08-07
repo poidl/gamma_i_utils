@@ -24,7 +24,8 @@ function [sig1,sig2] =  sig_vals(SP1,pt1,p1,SP2,pt2,p2)
 %==========================================================================
 
 pmid = 0.5*(p1 + p2);
-sig1 = rho_from_theta(SP1,pt1,pmid) - 1000;
-sig2 = rho_from_theta(SP2,pt2,pmid) - 1000;
-
+%sig1 = rho_from_theta(SP1,pt1,pmid) - 1000;
+%sig2 = rho_from_theta(SP2,pt2,pmid) - 1000;
+sig1 = gsw_rho(SP1,pt1,pmid) - 1000;
+sig2 = gsw_rho(SP2,pt2,pmid) - 1000;
 return

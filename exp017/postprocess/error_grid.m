@@ -70,7 +70,7 @@ function [sdx,sdy]=error_iso(va,s,ct,p,dx,dy)
     vae=circshift(va,[0 0 -1]);
     
     for kk=1:nz
-    %for kk=70:70    
+    %for kk=2:2
     %keyboard
         vsurf=squeeze(va(kk,:,:));
         
@@ -97,10 +97,11 @@ function [sdx,sdy]=error_iso(va,s,ct,p,dx,dy)
         [tr,tr,npy]=depth_ntp_simple(ssurf(:)',ctsurf(:)',psurf(:)',sn(:,:),ctn(:,:),pn(:,:),0*ssurf(:)');
         npy=reshape(npy,[ny,nx]);
         nsy=(npy-psurf)./dy;
-        %sdx(kk,:,:)=vsx-nsx;
-        %sdy(kk,:,:)=vsy-nsy;  
-        sdx(kk,:,:)=npx;
-        sdy(kk,:,:)=npy;          
+        sdx(kk,:,:)=vsx-nsx;
+        sdy(kk,:,:)=vsy-nsy;  
+        %sdx(kk,:,:)=npx;
+        %sdy(kk,:,:)=npy;   
+        %keyboard
        
     end
 

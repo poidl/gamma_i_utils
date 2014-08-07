@@ -1,11 +1,11 @@
 close all
 clear all
 
-%df = ncread('../exp017/data/D_f.nc','D_f');
-%dfg = ncread('../sandbox/Guillaume/data/Df_guillaume_2d.nc','Df_guillaume_2d');
-df = ncread('../exp017/data/sn2_D_f.nc','sn2_D_f');
+df = ncread('../exp017/data/D_f.nc','D_f');
+dfg = ncread('../sandbox/Guillaume/data/Df_guillaume_2d.nc','Df_guillaume_2d');
+%df = ncread('../exp017/data/sn2_D_f.nc','sn2_D_f');
 %df = ncread('../sandbox/Guillaume/data/sn2_Df_guillaume_2d_.nc','sn2_Df_guillaume_2d_');
-dfg = ncread('../sandbox/Guillaume/data/sn2_Df_guillaume_2d.nc','sn2_Df_guillaume_2d');
+%dfg = ncread('../sandbox/Guillaume/data/sn2_Df_guillaume_2d.nc','sn2_Df_guillaume_2d');
 %df = ncread('../exp017/data/sg2_D_f.nc','sg2_D_f');
 %dfg = ncread('../sandbox/Guillaume/data/sg2_Df_guillaume_2d.nc','sg2_Df_guillaume_2d');
 %dfg = ncread('../exp017/data/sg2_D_f_mod.nc','sg2_D_f_mod');

@@ -101,8 +101,8 @@ for i=1:longitude
             sn(k,j,i)=deltaz_N/deltay;
         else
             deltay=gsw_distance([long0 longt_N],[lat0 latt_N]);
-            %sn(k,j,i)=(pns_N-p0b)/deltay;
-            sn(k,j,i)=pns_N;
+            sn(k,j,i)=(pns_N-p0b)/deltay;
+            %sn(k,j,i)=pns_N;
         end
         end
         

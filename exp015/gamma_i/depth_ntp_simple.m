@@ -9,6 +9,10 @@ function [sns,ctns,pns] = depth_ntp_simple(s0,ct0,p0,s,ct,p,drho)
 %user_input; % get delta
 delta=1e-11;
 
+if nargin==6
+    drho=0*s0; % drho is a zero vector
+end
+
 nxy=size(s,2);
 
 inds=1:nxy;
@@ -36,6 +40,30 @@ p_=p(k3d);
 s_=s(k3d);
 ct_=ct(k3d);
 
+searched=~isnan(s_);
+%%%%%%%%%%%%%%%%%%%%%%%%
+ww=~isnan(s);
+cs=cumsum(ww,1);
+su=ones(size(cs));
+su(cs~=0)=0;
+kf=sum(su,1)+1; % vertical index of shallowest data point
+if any(kf<1| kf>nz)
+    error('something is wrong') % land should have been discarded above
+end
+stmp=s(end:-1:1,:,:);
+ww=~isnan(stmp);
+cs=cumsum(ww,1);
+su=ones(size(cs));
+su(cs~=0)=0;
+kl=sum(su,1)+1; 
+kl=nz-kl+1;% vertical index of deepest data point
+if any(kl<1| kl>nz)
+    error('something is wrong') % land should have been discarded above
+end
+%keyboard
+%kf3d=kf+nz*(0:nxy-1); % 3-d
+%%%%%%%%%%%%%%%%%%%%%%%%
+
 go_shallow_old=false(1,nxy);
 go_deep_old=false(1,nxy);
 
@@ -46,18 +74,39 @@ while any(~done)
     cnt=cnt+1;
     pmid=0.5*(p0+p_); 
     bottle = gsw_rho(s0,ct0,pmid);
-    F=gsw_rho(s_,ct_,pmid)-bottle+drho;
-
+    cast=gsw_rho(s_,ct_,pmid);
+    F=cast-bottle+drho;
+   
     go_shallow = F >=  delta; % go shallower to find first bottle pair
     go_deep    = F <= -delta; % go deeper to find first bottle pair
+    
+%    if cnt==1
+%keyboard
+
+        searched(~isnan(F))=true;
+        % F is nan at the current depth but well defined elsewhere in the
+        % watercolumn
+        nskip_up=k(inds_wet)-kl(inds_wet);
+        nskip_down=kf(inds_wet)-k(inds_wet);        
+        go_shallow_nan= isnan(F)  & ~searched & (nskip_up>0); 
+        go_deep_nan= isnan(F) & ~searched & (nskip_down>0);
+        
+        go_shallow=go_shallow | go_shallow_nan;
+        go_deep=go_deep | go_deep_nan;        
+%     else
+%         keyboard
+%         go_shallow(search_initial)=go_shallow(search_initial) | (isnan(F(search_initial)) & (k_>kf_));
+%         go_deep(search_initial)=go_deep(search_initial) | (isnan(F(search_initial)) & (k_<kf_));
+%     end
+    
     final= abs(F)<delta; % hit zero
     
     sns(inds(inds_wet(final)))=s_(final);
     ctns(inds(inds_wet(final)))=ct_(final);
     pns(inds(inds_wet(final)))=p_(final);
 
-    cfb = (go_shallow_old & go_deep); % crossed from below
-    cfa = (go_deep_old & go_shallow); % crossed from above
+    cfb = (go_shallow_old & go_deep & searched); % crossed from below
+    cfa = (go_deep_old & go_shallow & searched); % crossed from above
     crossed= cfb|cfa;
     start_bis = (crossed & ~bisect); % start bisection here
     bisect = (bisect | start_bis); % bisect here
@@ -67,25 +116,33 @@ while any(~done)
     kinc(inds_wet(go_deep & search_initial))= 1;
     kinc(inds_wet(go_shallow & search_initial))=-1;
     
+    kinc(inds_wet(go_deep_nan & search_initial))= nskip_down(inds_wet(go_deep_nan & search_initial));
+    kinc(inds_wet(go_shallow_nan & search_initial))=-nskip_up(inds_wet(go_shallow_nan & search_initial));   
+    
     
     k=k+kinc;
     k3d=k3d+kinc;
-    k_=k(inds_wet(search_initial));%+kinc(inds_wet(search_initial));
-    k3d_=k3d(inds_wet(search_initial));%+kinc(inds_wet(search_initial)); 
-
-    out=(k_<1)|(k_>nz); % above or below domain
-    out2=false(1,length(final));
-    out2(search_initial)= out;
-
-    done=isnan(F)|final|out2; 
+    k_=k(inds_wet(search_initial));%+kinc(inds_wet(search_initial)); %_i
+    k3d_=k3d(inds_wet(search_initial));%+kinc(inds_wet(search_initial)); %_i
+    %kf_=kf(inds_wet(search_initial));%+kinc(inds_wet(search_initial));
     
-    k3d_=k3d_(~out);    
+    out=(k_<1)|(k_>nz); % above or below domain %_i
+    out2=false(1,length(final)); %_bi
+    out2(search_initial)= out; %_bi
+
+    %done=isnan(F)|final|out2; 
+    %keyboard
+    done=(isnan(F) & searched) |final|out2; %_bi
+    
+    k3d_=k3d_(~out);   
     search_initial=search_initial(~done);
     bisect=bisect(~done);
     crossed=crossed(~done);
+    searched=searched(~done);
 
-    
-    if ~all((search_initial|bisect))
+    %disp(cnt)
+    %keyboard
+    if ~all((search_initial & ~bisect) | (~search_initial & bisect)) % either bisect or keep searching
         error('something is wrong')
     end  
     
