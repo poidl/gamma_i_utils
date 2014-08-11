@@ -7,6 +7,10 @@ addpath(genpath('.'))
 
 load('data/input_data_gammanc.mat')
 
+load('../exp024/data/plots_error_3d.mat')
+x2=values2;
+y2=vdiff2;
+
 [nz,ny,nx]=size(s);
 s(s<-90)=nan;
 ct(ct<-90)=nan;
@@ -34,14 +38,16 @@ vdiff=K*s;
 h1=plot(values,vdiff,'r')
 hold on
 plot(values,vdiff,'ro')
+h2=plot(x2,y2,'k')
+plot(x2,y2,'k*')
 
 xl1=21;
 xl2=28.5;
 ylim([0 3e-6]);
 
-% xl1=25;
-% xl2=28;
-%ylim([0 0.15e-6])
+xl1=26;
+xl2=28.5;
+ylim([0 0.15e-6])
 
 xlim([xl1,xl2]);
 ylabel('D_f [m^2/s]')
@@ -54,10 +60,13 @@ set(gca,'color','none');
 
 histax=axes('position',pos);
 xhi=linspace(xl1,xl2,100);
-[n,x]=histc(gamma(:),xhi);
+[n1,x1]=histc(gamma(:),xhi);
+[n2,x2]=histc(gamma_i(:),xhi);
 %h3=plot(xhi,n)
-pp=patch([xhi xl2 xl1],[n' 0 0], 0.85*[1 1 1],'edgecolor','none')
-ylim([0 7000]);
+pp1=patch([xhi xl2 xl1],[n1' 0 0], 0.85*[1 0 0],'edgecolor','none')
+hold on
+pp2=patch([xhi xl2 xl1],[n2' 0 0], 0.3*[1 1 1],'edgecolor','none')
+alpha(0.2);
 
 set(histax,'xticklabel',[],'xtick',[])
 set(histax,'yticklabel',[],'ytick',[])
@@ -70,9 +79,10 @@ xlim([xl1,xl2]);
 % figure()
 % hist(vdiff(:))
 
-legend([h1  pp],'location','northwest','\gamma_{n}','frequency distribution')
+legend([h1 h2  pp1 pp2],'location','northwest','\gamma_{n}','\gamma_i (backbone: \gamma_{n})',...
+    'frequency distribution \gamma_{n}','frequency distribution \gamma_{i}')
 %legend([h1 h2 ],'backbone: \gamma_{rf}','backbone: pressure')
-print('-dpdf','-r200',['figures/D_f_gamma_n_global.pdf'])
+print('-dpng','-r200',['figures/D_f_3d_compare_local.pdf'])
 
 
 
