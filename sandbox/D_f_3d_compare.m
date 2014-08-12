@@ -35,23 +35,24 @@ figure('PaperSize',sz,'PaperPosition',[0 0 sz(1) sz(2)])
 K=1e3;
 vdiff=K*s;
 
-h1=plot(values,vdiff,'r')
+h1=semilogy(values,vdiff,'r','linewidth',2)
 hold on
-plot(values,vdiff,'ro')
-h2=plot(x2,y2,'k')
-plot(x2,y2,'k*')
+semilogy(values,vdiff,'ro')
+h2=semilogy(x2,y2,'k','linewidth',2)
+semilogy(x2,y2,'k*')
 
 xl1=21;
 xl2=28.5;
-ylim([0 3e-6]);
+ylim([1e-12 1e-5])
 
-xl1=26;
-xl2=28.5;
-ylim([0 0.15e-6])
+
+% xl1=26;
+% xl2=28.5;
+%ylim([3e-10 1e-5])
 
 xlim([xl1,xl2]);
 ylabel('D_f [m^2/s]')
-xlabel('\gamma_n')
+xlabel('value of iso-surface')
 grid on
 %xlabel('\gamma^{rf} (black), \gamma^{i} (red)')
 ax1=gca;
@@ -62,11 +63,14 @@ histax=axes('position',pos);
 xhi=linspace(xl1,xl2,100);
 [n1,x1]=histc(gamma(:),xhi);
 [n2,x2]=histc(gamma_i(:),xhi);
-%h3=plot(xhi,n)
-pp1=patch([xhi xl2 xl1],[n1' 0 0], 0.85*[1 0 0],'edgecolor','none')
+pp1=plot(xhi,n1,'r')
 hold on
-pp2=patch([xhi xl2 xl1],[n2' 0 0], 0.3*[1 1 1],'edgecolor','none')
-alpha(0.2);
+pp2=plot(xhi,n2,'k')
+% pp1=patch([xhi xl2 xl1],[n1' 0 0], [1 0 0],'edgecolor','none')
+% hold on
+% pp2=patch([xhi xl2 xl1],[n2' 0 0], 0.8*[1 1 1],'edgecolor','none')
+% alpha(pp1,0.9);
+% alpha(pp2,0.9);
 
 set(histax,'xticklabel',[],'xtick',[])
 set(histax,'yticklabel',[],'ytick',[])
@@ -82,7 +86,7 @@ xlim([xl1,xl2]);
 legend([h1 h2  pp1 pp2],'location','northwest','\gamma_{n}','\gamma_i (backbone: \gamma_{n})',...
     'frequency distribution \gamma_{n}','frequency distribution \gamma_{i}')
 %legend([h1 h2 ],'backbone: \gamma_{rf}','backbone: pressure')
-print('-dpng','-r200',['figures/D_f_3d_compare_local.pdf'])
+print('-dpdf','-r200',['figures/D_f_3d_compare_global.pdf'])
 
 
 

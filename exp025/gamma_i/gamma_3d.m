@@ -232,7 +232,7 @@ A = sparse(irow,jcol,coeff,neq_total,nox);
 %b=[zeros(neq_lateral,1); bdy_vals];
 %load('data/gamma_96.mat')
 %gamma_bdy=gamma_96(gam);
-gamma_bdy=p(gam);
+gamma_bdy=gamma_initial;
 b=[zeros(neq_lateral,1); w_bdy*gamma_bdy(bdy(gam))];
 
 if 1

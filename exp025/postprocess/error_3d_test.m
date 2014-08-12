@@ -8,8 +8,8 @@ load('../data/gamma_initial.mat')
 
 %[s1,values1]=error_3d(gamma_initial,SA,CT,p);
 
-load('../data/gamma_i.mat')
-%load('../data/gamma_i_f2g.mat')
+%load('../data/gamma_i.mat')
+load('../data/gamma_i_f2g.mat')
 
 [s_pressure,values_pressure]=error_3d(gamma_i,SA,CT,p);
 

@@ -29,7 +29,7 @@ nzbb=length(fbb);
 
 g3d=nan*f;
 for ii=1:ny*nx
-    g3d(:,ii)=interp1(fbb,g,f(:,ii));
+    g3d(:,ii)=interp1(fbb,g,f(:,ii),'pchip');
 end
 
 end
