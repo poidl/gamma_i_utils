@@ -46,6 +46,9 @@ ct=double(ct);
 p=double(p);
 gamma_96=double(gamma_96);
 save('data/gamma_96.mat', 'gamma_96') % for boundary condition
+
+vars = {'s','ct','p','lats','longs'};
+save('data/input_data.mat',vars{:})
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % if 1
 %     sinusoidal

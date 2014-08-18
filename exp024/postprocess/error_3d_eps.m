@@ -23,9 +23,10 @@ function [err,values] = error_3d_eps(va,sa,ct,p,vals)
 
     for ii=1:length(values)
         %[sx,sy,ss,cts,ps]=slope_error(va,sa,ct,p,values(ii));
-        [sx,sy,ss,cts,ps]=eps_error(va,sa,ct,p,values(ii));
-        s=sx.^2+sy.^2;
-        sbar(ii)=nanmean(s(:));
+        [drhodx,drhody,ss,cts,ps]=eps_error(va,sa,ct,p,values(ii));
+        %s=sx.^2+sy.^2;
+        %sbar(ii)=sqrt(nanmean(s(:)));
+        sbar(ii)=sqrt( nanmean( [drhodx(:);drhody(:)] .^2));
     end
     
     err=sbar;
@@ -132,41 +133,41 @@ function [sx,sy,ss,cts,ps]=eps_error(va,sa,ct,p,value)
     cts=var_on_surf_stef(ct,p,ps);
 
     [ex,ey] = delta_tilde_rho(ss,cts,ps); % ex and ey are defined on staggered grids
-    % regrid
+%     % regrid
+% 
+%     ex=0.5*(ex+circshift(ex,[0 1]));
+%     if ~zonally_periodic & nx~=1 % could extrapolate?
+%         ex(:,1)=nan;
+%         ex(:,end)=nan;
+%     end
+%     ey=0.5*(ey+circshift(ey,[1 0]));
+%     ey(1,:)=nan;
+%     ey(end,:)=nan;
 
-    ex=0.5*(ex+circshift(ex,[0 1]));
-    if ~zonally_periodic & nx~=1 % could extrapolate?
-        ex(:,1)=nan;
-        ex(:,end)=nan;
-    end
-    ey=0.5*(ey+circshift(ey,[1 0]));
-    ey(1,:)=nan;
-    ey(end,:)=nan;
-
-    rho=gsw_rho(sa(:,:),ct(:,:),p(:,:));
-    rho=reshape(rho,[nz,ny,nx]);
-    rhos=var_on_surf_stef(rho,p,ps);
-    [n2,pmid]=gsw_Nsquared(sa(:,:),ct(:,:),p(:,:));
-    n2=reshape(n2,[nz-1,ny,nx]);
-    pmid=reshape(pmid,[nz-1,ny,nx]);
-    n2s=var_on_surf_stef(n2,pmid,ps);
-
-    fac=(1/9.81)*rhos.*n2s;
-    %facx=0.5*(fac+circshift(fac,[0 -1]));
-    %facy=0.5*(fac+circshift(fac,[-1 0]));
-
-
-    load('data/dy.mat')
-
-    if nx~=1
-        dx=0.5*(dx(:,1:end-1)+dx(:,2:end));
-        dx=horzcat(dx(:,end), dx); % sloppy 
-        ex=ex./dx;
-    end
-    dy=0.5*(dy(1:end-1,:)+dy(2:end,:));
-    dy=vertcat(dy(end,:), dy); % sloppy
-    
-    ey=ey./dy;
+%     rho=gsw_rho(sa(:,:),ct(:,:),p(:,:));
+%     rho=reshape(rho,[nz,ny,nx]);
+%     rhos=var_on_surf_stef(rho,p,ps);
+%     [n2,pmid]=gsw_Nsquared(sa(:,:),ct(:,:),p(:,:));
+%     n2=reshape(n2,[nz-1,ny,nx]);
+%     pmid=reshape(pmid,[nz-1,ny,nx]);
+%     n2s=var_on_surf_stef(n2,pmid,ps);
+% 
+%     fac=(1/9.81)*rhos.*n2s;
+%     %facx=0.5*(fac+circshift(fac,[0 -1]));
+%     %facy=0.5*(fac+circshift(fac,[-1 0]));
+% 
+% 
+%     load('data/dy.mat')
+% 
+%     if nx~=1
+%         dx=0.5*(dx(:,1:end-1)+dx(:,2:end));
+%         dx=horzcat(dx(:,end), dx); % sloppy 
+%         ex=ex./dx;
+%     end
+%     dy=0.5*(dy(1:end-1,:)+dy(2:end,:));
+%     dy=vertcat(dy(end,:), dy); % sloppy
+%     
+%     ey=ey./dy;
     
     sx=ex;
     sy=ey;

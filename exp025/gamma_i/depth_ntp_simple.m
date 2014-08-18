@@ -202,6 +202,9 @@ end
 function [s0,ct0,p0,s,ct,p,drho,inds]=discard_land(s0,ct0,p0,s,ct,p,drho,inds)
     iwet=~isnan(s0);
 
+    iland=all(isnan(s));    
+    iwet=iwet & ~iland;
+    
     s0=s0(iwet);
     ct0=ct0(iwet);
     p0=p0(iwet);

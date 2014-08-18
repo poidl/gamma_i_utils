@@ -1,7 +1,7 @@
 close all
 clear all
 
-sz=1.5*[13 10];
+sz=1.5*[10 10];
 figure('PaperSize',sz,'PaperPosition',[0 0 sz(1) sz(2)]) 
 
 load('../exp013/data/plots.mat')

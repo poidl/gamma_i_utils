@@ -88,7 +88,7 @@ function [sdx,sdy]=error_iso(va,s,ct,p,dx,dy)
         vsx=(vpx-psurf)./dx;        
         vpy=var_on_surf_stef(pn,van,vsurf);
         vsy=(vpy-psurf)./dy;
-        
+        %keyboard
         [tr,tr,npx]=depth_ntp_simple(ssurf(:)',ctsurf(:)',psurf(:)',se(:,:),cte(:,:),pe(:,:),0*ssurf(:)');
         npx=reshape(npx,[ny,nx]);
         nsx=(npx-psurf)./dx;

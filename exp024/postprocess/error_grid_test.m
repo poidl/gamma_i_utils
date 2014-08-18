@@ -12,6 +12,8 @@ err=error_grid(gamma_i,SA,CT,p);
 display(['it took ',num2str(toc),' seconds']);
 %err(abs(err)>1e-6)=nan;
 
+D_f_grid=err;
+save('../data/D_f_grid.mat','D_f_grid');
 save_netcdf03(log10(err),'D_f','../data/D_f.nc')
 
 
