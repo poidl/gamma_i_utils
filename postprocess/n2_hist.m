@@ -4,9 +4,14 @@ clear all
 sz=1.5*[13 10];
 figure('PaperSize',sz,'PaperPosition',[0 0 sz(1) sz(2)]) 
 
-%load('../exp024/data/gamma_initial.mat')
-
 [s,ct,p]=gammanc_to_sctp();
+%load('/home/nfs/z3439823/mymatlab/paul/paul_data/WGHC/wghc_2deg_2010.mat')
+%load('/home/nfs/z3439823/mymatlab/paul/paul_data/WGHC/wghc_2degree.mat')
+
+% for pdf file names
+data_set_string='_gammanc'
+% set limit for close-up plot
+limit=1e-6;
 
 [nz,ny,nx]=size(s);
 
@@ -19,7 +24,7 @@ ip=n2>=0;
 in=n2<0;
 n2p=n2(ip);
 n2n=n2(in);
-limit=1e-6;
+
 n2_tiny=abs(n2(:))<limit;
 n2t=n2(n2_tiny);
 
@@ -56,14 +61,16 @@ set(ch,'FaceVertexCData',fvcd);
 set(gca,'YScale','log')
 xlim([xl1-0.1*xl2,1.1*xl2]);
 ylim([log(bv),1.1*max(np)])
-
+xlabel('N^2')
+ylabel('frequency')
 % subplot(2,1,2)
 % bar(xn, -nn, 'barwidth', 1, 'basevalue', bv);
 % %set(gca,'YScale','log')
 % xlim([xl1-0.1*xl2,1.1*xl2]);
 % ylim([log(bv),1.1*max(np)])
 
-print('-dpdf','-r200',['figures/n2_hist.pdf'])
+
+print('-dpdf','-r200',['figures/n2_hist',data_set_string,'.pdf'])
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -71,7 +78,8 @@ print('-dpdf','-r200',['figures/n2_hist.pdf'])
 sz=1.5*[13 10];
 figure('PaperSize',sz,'PaperPosition',[0 0 sz(1) sz(2)])
 
-xl1=min(min(n2(:),-limit));
+%xl1=min(min(n2(:),-limit));
+xl1=max(min(n2(:),-limit));
 xl2=min(max(n2(:),limit));
 x=linspace(xl1,xl2,100);
 dx=diff(x); dx=dx(1);
@@ -104,6 +112,8 @@ set(gca,'YScale','log')
 xlim([xl1-0.1*xl2,1.1*xl2]);
 ylim([log(bv),1.1*max(np)])
 
+xlabel('N^2')
+ylabel('frequency')
 
 
 xp1=x(n>0 & x'>0);
@@ -117,8 +127,9 @@ str2=['x=',num2str(xp1(1)-0.5*dx)];
 str1=['min(N^2>=0)=',num2str(min(n2p))];
 str2=['max(N^2<0)=',num2str(max(n2n))];
 legend([hl1,hl2],str1,str2,'location','northwest')
-keyboard
-print('-dpdf','-r200',['figures/n2_hist_tiny.pdf'])
+
+axis tight
+print('-dpdf','-r200',['figures/n2_hist_tiny',data_set_string,'.pdf'])
 
 
 

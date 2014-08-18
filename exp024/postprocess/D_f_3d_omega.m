@@ -8,7 +8,8 @@ load('../data/plots_error_3d.mat')
 load('/home/nfs/z3439823/mymatlab/omega/ansu_utils/exp624/data/gamma_i_ribs.mat')
 
 x1=values2;
-y1=vdiff2;
+y1=vdiff2_bar;
+y2=vdiff2_med;
 %load('../exp014/data/plots.mat')
 %x2=g_bb;
 %y2=vdiff_pressure;
@@ -16,12 +17,18 @@ y1=vdiff2;
 % x3=g_bb;
 % y3=vdiff_pressure;
 
+% means
 h1=semilogy(x1,y1,'b')
 hold on
 semilogy(x1,y1,'bo','markersize',3)
 h2=semilogy(values2_omega,mdf,'r')
 semilogy(values2_omega,mdf,'ro','markersize',3)
 
+% medians
+h3=semilogy(x1,y2,'--b')
+semilogy(x1,y2,'bo','markersize',3)
+h4=semilogy(values2_omega,df_med,'--r')
+semilogy(values2_omega,df_med,'ro','markersize',3)
 % h1=plot(x1,y1,'b')
 % hold on
 % plot(x1,y1,'bo','markersize',3)
@@ -72,7 +79,7 @@ xhi=linspace(xl1,xl2,100);
 
 %legend([h1 h2 pp],'backbone: \gamma_{rf}','backbone: pressure','frequency distribution')
 %legend([h1  pp],'location','west','\gamma_i (backbone: \gamma_{n})','frequency distribution')
-legend([h1 h2 pp],'location','northwest','\gamma_i (backbone: \gamma_{n})','\omega clamped at backbone','frequency distribution')
+legend([h1 h3 h2 h4 pp],'location','northwest','\gamma_i (backbone: \gamma_{n})','median','\omega clamped at backbone','median','frequency distribution')
 %legend([h1 h2 ],'backbone: \gamma_{rf}','backbone: pressure')
 print('-dpdf','-r200',['../figures/D_f_3d_omega_global.pdf'])
 

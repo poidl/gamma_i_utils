@@ -1,78 +1,146 @@
-close all
-clear all
-restoredefaultpath
-addpath(genpath('../../../gsw_matlab_v3_02'))
-addpath(genpath('../exp024'))
-addpath(genpath('.'))
+function [err_bar,err_med,values] = error_3d(va,sa,ct,p,vals)
 
-load('data/input_data_gammanc.mat')
+    user_input;
 
-[nz,ny,nx]=size(s);
-s(s<-90)=nan;
-ct(ct<-90)=nan;
-gamma(gamma<-90)=nan;
+    [nz,ny,nx]=size(va);
 
-la=squeeze(lats(1,:,:));
-lo=squeeze(longs(1,:,:));
+%     % find deepest location
+%     pn=p; pn(isnan(sa))=nan;
+%     imax=max(pn(:));
+%     ibdy=int16(imax)/nz;
+% 
+%     bdy=va(:,ibdy);
+%     bdy_top=bdy(1);
+%     bdy_bottom=bdy(end);
 
-if nx==1
-    la=la';
-    lo=lo';
+    if nargin==4
+        values=get_values(va);
+    elseif nargin==5
+        values=vals;
+    end
+           
+    sbar=nan*ones(size(values));
+    smed=nan*ones(size(values));
+
+    for ii=1:length(values)
+        [sx,sy,ss,cts,ps]=slope_error(va,sa,ct,p,values(ii));
+        s=sx.^2+sy.^2;
+        sbar(ii)=nanmean(s(:));
+        smed(ii)=nanmedian(s(:));
+    end
+    
+    err_bar=sbar;
+    err_med=smed;
+%     vap=sx.^2+sy.^2;
+%     h=imagesc(vap);
+%     set(h,'alphadata',~isnan(vap));
+%     set(gca,'YDir','normal');
+%     colorbar()
+% 
+% 
+%     figure()
+%     vap=ps
+%     h=imagesc(vap);
+%     set(h,'alphadata',~isnan(vap));
+%     set(gca,'YDir','normal');
+%     colorbar()
+%     caxis([0 200])
 end
 
-[dy,dx]=scale_fac(la,lo);
-save('data/dy.mat', 'dx','dy') 
+function values=get_values(va)
+    % get vector of values of va whose spacing decreases with
+    % stratification (decreses with number of observations in a density range)
 
-[s,values]=error_3d(gamma,s,ct,p);
+    va_min=min(va(:));
+    va_max=max(va(:))+eps(1100); % add eps(1100) such that histc() returns zero for last bin.
+    bins=linspace(va_min,va_max,30);
+    hi=histc(va(:),bins);
+    hi=hi(1:end-1); % remove last entry
+    nsurf=100; % approx. number of total surfaces
+    N=int16(hi*nsurf/sum(hi)); % number of surfaces for bin
+    N=double(N);
+    dg=diff(bins)./N'; % increment of gamma
+    dg(~isfinite(dg))=nan;
+    
+    nsurf=sum(N);
+    values=nan*(ones(1,nsurf));
+    
+    jj=1;
+    for ii=1:length(dg);
+        if ~isnan(dg(ii))
+            values(jj: jj+N(ii)-1)=bins(ii)+dg(ii)*(0.5 : 1 : N(ii)-0.5);
+            jj=jj+N(ii);
+        end
+    end 
+end
 
-sz=1.5*[13 10];
-figure('PaperSize',sz,'PaperPosition',[0 0 sz(1) sz(2)]) 
+function [sx,sy,ss,cts,ps]=slope_error(va,sa,ct,p,value)
 
-K=1e3;
-vdiff=K*s;
+    user_input;
+    [nz,ny,nx]=size(sa);
+    ps=var_on_surf_stef(p,va,value*ones(ny,nx));
+    ss=var_on_surf_stef(sa,p,ps);
+    cts=var_on_surf_stef(ct,p,ps);
 
-h1=plot(values,vdiff,'r')
-hold on
-plot(values,vdiff,'ro')
+    [ex,ey] = delta_tilde_rho(ss,cts,ps); % ex and ey are defined on staggered grids
+    % regrid
 
-xl1=21;
-xl2=28.5;
-ylim([0 3e-6]);
+    ex=0.5*(ex+circshift(ex,[0 1]));
+    if ~zonally_periodic & nx~=1 % could extrapolate?
+        ex(:,1)=nan;
+        ex(:,end)=nan;
+    end
+    ey=0.5*(ey+circshift(ey,[1 0]));
+    ey(1,:)=nan;
+    ey(end,:)=nan;
 
-% xl1=25;
-% xl2=28;
-%ylim([0 0.15e-6])
+    rho=gsw_rho(sa(:,:),ct(:,:),p(:,:));
+    rho=reshape(rho,[nz,ny,nx]);
+    rhos=var_on_surf_stef(rho,p,ps);
+    [n2,pmid]=gsw_Nsquared(sa(:,:),ct(:,:),p(:,:));
+    n2=reshape(n2,[nz-1,ny,nx]);
+    pmid=reshape(pmid,[nz-1,ny,nx]);
+    n2s=var_on_surf_stef(n2,pmid,ps);
 
-xlim([xl1,xl2]);
-ylabel('D_f [m^2/s]')
-xlabel('\gamma_n')
-grid on
-%xlabel('\gamma^{rf} (black), \gamma^{i} (red)')
-ax1=gca;
-pos=get(gca,'position');
-set(gca,'color','none');
+    fac=(1/9.81)*rhos.*n2s;
+    %facx=0.5*(fac+circshift(fac,[0 -1]));
+    %facy=0.5*(fac+circshift(fac,[-1 0]));
 
-histax=axes('position',pos);
-xhi=linspace(xl1,xl2,100);
-[n,x]=histc(gamma(:),xhi);
-%h3=plot(xhi,n)
-pp=patch([xhi xl2 xl1],[n' 0 0], 0.85*[1 1 1],'edgecolor','none')
-ylim([0 7000]);
 
-set(histax,'xticklabel',[],'xtick',[])
-set(histax,'yticklabel',[],'ytick',[])
+    load('data/dy.mat')
 
-uistack(histax,'bottom')
-xlim([xl1,xl2]);
+    if nx~=1
+        dx=0.5*(dx(:,1:end-1)+dx(:,2:end));
+        dx=horzcat(dx(:,end), dx); % sloppy 
+        ex=ex./dx;
+    end
+    dy=0.5*(dy(1:end-1,:)+dy(2:end,:));
+    dy=vertcat(dy(end,:), dy); % sloppy
+    
+    ey=ey./dy;
+    
+    sx=ex./fac;
+    sy=ey./fac;
 
-%axis off
+end
 
-% figure()
-% hist(vdiff(:))
 
-legend([h1  pp],'location','northwest','\gamma_{n}','frequency distribution')
-%legend([h1 h2 ],'backbone: \gamma_{rf}','backbone: pressure')
-print('-dpdf','-r200',['figures/D_f_gamma_n_global.pdf'])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,4 +1,4 @@
-function [err,values] = error_3d(va,sa,ct,p,vals)
+function [err_bar,err_med,values] = error_3d(va,sa,ct,p,vals)
 
     user_input;
 
@@ -20,14 +20,17 @@ function [err,values] = error_3d(va,sa,ct,p,vals)
     end
            
     sbar=nan*ones(size(values));
+    smed=nan*ones(size(values));
 
     for ii=1:length(values)
         [sx,sy,ss,cts,ps]=slope_error(va,sa,ct,p,values(ii));
         s=sx.^2+sy.^2;
         sbar(ii)=nanmean(s(:));
+        smed(ii)=nanmedian(s(:));
     end
     
-    err=sbar;
+    err_bar=sbar;
+    err_med=smed;
 %     vap=sx.^2+sy.^2;
 %     h=imagesc(vap);
 %     set(h,'alphadata',~isnan(vap));
@@ -107,12 +110,12 @@ function [sx,sy,ss,cts,ps]=slope_error(va,sa,ct,p,value)
     load('data/dy.mat')
 
     if nx~=1
-        dx=0.5*(dx(:,1:end-1)+dy(:,2:end));
-        dx=horzcat(dx, dx(:,end)); % sloppy 
+        dx=0.5*(dx(:,1:end-1)+dx(:,2:end));
+        dx=horzcat(dx(:,end), dx); % sloppy 
         ex=ex./dx;
     end
     dy=0.5*(dy(1:end-1,:)+dy(2:end,:));
-    dy=vertcat(dy, dy(end,:)); % sloppy
+    dy=vertcat(dy(end,:), dy); % sloppy
     
     ey=ey./dy;
     

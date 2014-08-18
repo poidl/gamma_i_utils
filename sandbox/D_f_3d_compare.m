@@ -9,7 +9,8 @@ load('data/input_data_gammanc.mat')
 
 load('../exp024/data/plots_error_3d.mat')
 x2=values2;
-y2=vdiff2;
+y2=vdiff2_bar;
+y3=vdiff2_med;
 
 [nz,ny,nx]=size(s);
 s(s<-90)=nan;
@@ -27,28 +28,34 @@ end
 [dy,dx]=scale_fac(la,lo);
 save('data/dy.mat', 'dx','dy') 
 
-[s,values]=error_3d(gamma,s,ct,p);
+[sbar,smed,values]=error_3d(gamma,s,ct,p);
 
 sz=1.5*[13 10];
 figure('PaperSize',sz,'PaperPosition',[0 0 sz(1) sz(2)]) 
 
 K=1e3;
-vdiff=K*s;
+vdiff_bar=K*sbar;
+vdiff_med=K*smed;
 
-h1=semilogy(values,vdiff,'r','linewidth',2)
+h1=semilogy(values,vdiff_bar,'r','linewidth',2)
 hold on
-semilogy(values,vdiff,'ro')
+semilogy(values,vdiff_bar,'ro')
 h2=semilogy(x2,y2,'k','linewidth',2)
 semilogy(x2,y2,'k*')
+
+h3=semilogy(values,vdiff_med,'--r','linewidth',2)
+semilogy(values,vdiff_med,'--ro')
+h4=semilogy(x2,y3,'--k','linewidth',2)
+semilogy(x2,y3,'--k*')
 
 xl1=21;
 xl2=28.5;
 ylim([1e-12 1e-5])
 
 
-% xl1=26;
-% xl2=28.5;
-%ylim([3e-10 1e-5])
+xl1=26;
+xl2=28.5;
+ylim([3e-10 1e-5])
 
 xlim([xl1,xl2]);
 ylabel('D_f [m^2/s]')
@@ -83,10 +90,10 @@ xlim([xl1,xl2]);
 % figure()
 % hist(vdiff(:))
 
-legend([h1 h2  pp1 pp2],'location','northwest','\gamma_{n}','\gamma_i (backbone: \gamma_{n})',...
+legend([h1 h3 h2 h4 pp1 pp2],'location','northwest','\gamma_{n}','median','\gamma_i (backbone: \gamma_{n})','median',...
     'frequency distribution \gamma_{n}','frequency distribution \gamma_{i}')
 %legend([h1 h2 ],'backbone: \gamma_{rf}','backbone: pressure')
-print('-dpdf','-r200',['figures/D_f_3d_compare_global.pdf'])
+print('-dpdf','-r200',['figures/D_f_3d_compare_local.pdf'])
 
 
 

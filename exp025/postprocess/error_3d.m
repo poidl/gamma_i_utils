@@ -1,4 +1,4 @@
-function [err,values] = error_3d(va,sa,ct,p,vals)
+function [err_bar,err_med,values] = error_3d(va,sa,ct,p,vals)
 
     user_input;
 
@@ -20,14 +20,17 @@ function [err,values] = error_3d(va,sa,ct,p,vals)
     end
            
     sbar=nan*ones(size(values));
+    smed=nan*ones(size(values));
 
     for ii=1:length(values)
         [sx,sy,ss,cts,ps]=slope_error(va,sa,ct,p,values(ii));
         s=sx.^2+sy.^2;
         sbar(ii)=nanmean(s(:));
+        smed(ii)=nanmedian(s(:));
     end
     
-    err=sbar;
+    err_bar=sbar;
+    err_med=smed;
 %     vap=sx.^2+sy.^2;
 %     h=imagesc(vap);
 %     set(h,'alphadata',~isnan(vap));
