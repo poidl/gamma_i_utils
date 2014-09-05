@@ -221,29 +221,16 @@ r_s=r_south(south);
 
 w_bdy=1;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-% weighting
-% (1/N^2)
-[n2,pmid]=gsw_Nsquared(SA,CT,p);
-n2=cat(1,n2,n2(end,:,:));
-n2(n2(:)<=1e-7)=1e-7;
-n2=n2(gam);
-n2(isnan(n2))=nanmean(n2); % n2 is not necessarily well defined where gamma is. quick fix for testing.
-w_n2=(1./n2(j1));
-w_n2_a=w_n2(i_e);
-w_n2_aa=w_n2(i_e_lower);
-w_n2_b=w_n2(i_w);
-w_n2_bb=w_n2(i_w_lower);
-w_n2_c=w_n2(i_n);
-w_n2_cc=w_n2(i_n_lower);
-w_n2_d=w_n2(i_s);
-w_n2_dd=w_n2(i_s_lower);
-
-coeff=[w_n2.*ones(neq_lateral,1); -w_n2_a.*(1-r_e); -w_n2_aa.*r_e(j_e_l); ...
-                                  -w_n2_b.*(1-r_w); -w_n2_bb.*r_w(j_w_l); ...    
-                                  -w_n2_c.*(1-r_n); -w_n2_cc.*r_n(j_n_l); ...
-                                  -w_n2_d.*(1-r_s); -w_n2_dd.*r_s(j_s_l); ...
+keyboard
+[c1,ce,cw,cn,cs]=weighting_coeffs_N2(SA,CT,p,...
+                    j1,i_e,i_e_lower,i_w,i_w_lower,i_n,i_n_lower,i_s,i_s_lower)
+               
+coeff=[c1.*ones(neq_lateral,1); -ce(1).*(1-r_e); -ce(2).*r_e(j_e_l); ...
+                                -cw(1).*(1-r_w); -cw(2).*r_w(j_w_l); ...    
+                                -cn(1).*(1-r_n); -cn(2).*r_n(j_n_l); ...
+                                -cs(1).*(1-r_s); -cs(2).*r_s(j_s_l); ...
           w_bdy*ones(sum(bdy),1)];
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % coeff1=[ones(neq_lateral,1); -(1-r_e); -r_e(j_e_l); ...
