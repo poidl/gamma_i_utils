@@ -6,7 +6,7 @@ n2=reshape(n2,[nz-1,ny,nx]);
 
 n2s=repmat(nanmean(n2,3),[1,1,nx]);
 
-if min(n2s(:))<=1e-8
+if min(n2s(:)<=1e-8)
     error('problem')
 end
 

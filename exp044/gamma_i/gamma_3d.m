@@ -214,7 +214,7 @@ A = sparse(irow,jcol,coeff,neq_total,nox);
 % save_netcdf03(gamma_initial,'gamma_initial','gamma_initial.nc')
 % save_netcdf03(gamma_initial-gamma_96,'gamma_diff','gamma_diff.nc')
 load('data/gamma_96.mat')
-gamma_initial=gamma_96;
+gamma_initial=zeros(size(gamma_96));
 %gamma_initial(:)=0;
 %gamma_initial=p/max(p(:));
 save('data/gamma_initial.mat','gamma_initial')
@@ -222,13 +222,14 @@ gamma_initial=gamma_initial(gam);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-b=[zeros(neq_lateral,1); w_bdy.*gamma_initial(bdy(gam))];
+b=[zeros(neq_lateral,1); w_bdy];
 
 if 1
     %gamma = lsqr(A,b,1e-15,10000,[],[],gamma_initial(:));
     disp('starting LSQR()')
     tic
-    [gamma,flag,relres,iter,resvec,lsvec] = lsqr(A,b,1e-15,10000,[],[],gamma_initial(:));
+    [gamma,flag,relres,iter,resvec,lsvec] = lsqr(A,b,1e-15,1,[],[],gamma_initial(:));
+    display(['Modified: ',num2str(sum(gamma(:)~=0))])
     display(['LSQR() took ',num2str(toc),' seconds for ',num2str(length(lsvec)),' iterations']);
     %keyboard
     if length(lsvec)==length(resvec)
@@ -250,7 +251,7 @@ gamma(no_equation)=nan;
 gamma_i=nan*gam;
 gamma_i(gam)=gamma;
 gamma_i=reshape(gamma_i,[nz,ny,nx]);
-
+    %keyboard
 
 save('data/gamma_i.mat','gamma_i')
 

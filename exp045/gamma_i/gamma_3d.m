@@ -14,7 +14,7 @@ user_input;
 % [I_bg, gamma_bdry] = gamma_boundary_gammas(gamma_initial,lon,lat);
 
 tic
-if 0
+if 1
     write=true;
     % east
     [k_east,r_east] = gamma_intersections(SA,CT,p,-ny);
@@ -213,10 +213,10 @@ A = sparse(irow,jcol,coeff,neq_total,nox);
 %keyboard
 % save_netcdf03(gamma_initial,'gamma_initial','gamma_initial.nc')
 % save_netcdf03(gamma_initial-gamma_96,'gamma_diff','gamma_diff.nc')
-load('data/gamma_96.mat')
-gamma_initial=gamma_96;
+%load('data/gamma_96.mat')
+%gamma_initial=gamma_96;
 %gamma_initial(:)=0;
-%gamma_initial=p/max(p(:));
+gamma_initial=p/max(p(:));
 save('data/gamma_initial.mat','gamma_initial')
 gamma_initial=gamma_initial(gam);
 

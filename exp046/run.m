@@ -4,17 +4,28 @@ close all
 restoredefaultpath
 addpath(genpath('../../../gsw_matlab_v3_02'))
 addpath(genpath('../../../omega/ansu_utils/external_scripts/'))
+addpath(genpath('../../../data/get_input_data/'))
 addpath(genpath('.'))
 
 tic
-[s,ct,p,gamma_96,lats,longs]=gammanc_to_sctp;
 
-[s,ct,gamma_96]=make_mask_96(s,ct,p,gamma_96,longs,lats);
+[s,ct,p,lon,lat]=get_input_woa13_1deg();
 
+lats=lat;
+longs=lon;
+%keyboard
+% remove deepest data point ('partial step level', see Julien's email)
+sl=circshift(s,[-1 0 0]);
+in= ~isnan(s) & isnan(sl);
+in(end,:,:)=false;
+s(in)=nan;
+ct(in)=nan;
+
+%keyboard
 vars = {'s','ct','p','lats','longs'};
 save('data/input_data.mat',vars{:})
 
-save('data/gamma_96.mat', 'gamma_96') % for boundary condition
+%save('data/gamma_96.mat', 'gamma_96') % for boundary condition
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -63,7 +63,6 @@ save('data/dy.mat', 'dx','dy')
 
 % remove all except largest region
 regions=find_regions(squeeze(s(1,:,:)));
-%keyboard
 [zi,yi,xi]=size(s);
 imaxregion=0; % index of largest region
 npmaxreg=0; % number of points in largest region

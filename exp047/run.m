@@ -14,7 +14,6 @@ tic
 vars = {'s','ct','p','lats','longs'};
 save('data/input_data.mat',vars{:})
 
-save('data/gamma_96.mat', 'gamma_96') % for boundary condition
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -61,23 +60,23 @@ end
 [dy,dx]=scale_fac(la,lo);
 save('data/dy.mat', 'dx','dy') 
 
-% remove all except largest region
-regions=find_regions(squeeze(s(1,:,:)));
-%keyboard
-[zi,yi,xi]=size(s);
-imaxregion=0; % index of largest region
-npmaxreg=0; % number of points in largest region
-for i=1:length(regions)
-    if length(regions{i})>npmaxreg;
-        npmaxreg=length(regions{i});
-        imaxreg=i;
-    end
-end
-setnan=true(1,xi*yi);
-setnan(regions{imaxreg})=false;
-
-s(:,setnan)=nan;
-ct(:,setnan)=nan;
+% % remove all except largest region
+% regions=find_regions(squeeze(s(1,:,:)));
+% %keyboard
+% [zi,yi,xi]=size(s);
+% imaxregion=0; % index of largest region
+% npmaxreg=0; % number of points in largest region
+% for i=1:length(regions)
+%     if length(regions{i})>npmaxreg;
+%         npmaxreg=length(regions{i});
+%         imaxreg=i;
+%     end
+% end
+% setnan=true(1,xi*yi);
+% setnan(regions{imaxreg})=false;
+% 
+% s(:,setnan)=nan;
+% ct(:,setnan)=nan;
 
 va=squeeze(ct(:,:,1));
 %h=imagesc(lats(1,:,1),p(:,1,1),va);

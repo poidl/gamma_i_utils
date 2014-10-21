@@ -1,10 +1,12 @@
-function gamma_i = gamma_3d(SA,CT,p,lon,lat)
+function gamma_i = gamma_3d(SA,CT,p,lon,lat,dx,dy,dz)
 
 
 % Written by D.R. Jackett
 % Modified by P.M. Barker (2014)
 % Modified by S. Riha (2014)
 % Principal Investigator: T.J. McDougall
+
+addpath(genpath('/home/z3439823/mymatlab/gamma')) % for calling gamma_n()
 
 [nz,ny,nx] = size(SA);
 
@@ -134,14 +136,14 @@ i_s_lower=i_s(j_s_l);
 
 
 % boundary
-%bdy= 170<=lon(:) & lon(:)<=270 & -10<=lat(:) & lat(:)<=10;
-%bdy= 179<=lon(:) & lon(:)<=181 & -5<=lat(:) & lat(:)<=-3; % 16 S, 188 E
-bdy= 187<=lon(:) & lon(:)<=189 & -17<=lat(:) & lat(:)<=-15; % 16 S, 188 E
-if sum(bdy)~=nz
-    disp('WARNING: multiple backbones (or none at all)')
-    keyboard
-end
-bdy= gam & bdy;
+% find point closest to 16 S, 188 E
+lvec=[lon(1,:)'-188,lat(1,:)'+16]; 
+[~,ibb]=min(lvec(:,1).^2+lvec(:,2).^2);
+bdy=false(nz,ny,nx);
+bdy(:,ibb)=true;
+%keyboard
+bdy= gam & bdy(:);
+
 j1_bdy= sreg(bdy); % column indices for matrix coef. 1
 i1_bdy=(neq+1:neq+sum(bdy));
 neq_lateral=neq;
@@ -210,15 +212,21 @@ A = sparse(irow,jcol,coeff,neq_total,nox);
 % %gamma_initial=gi+1e-1*randn(size(gi)); % perturb analytic solution to create interesting initial condition
 % gamma_initial(13:15)=gi(13:15);
 
-%keyboard
-% save_netcdf03(gamma_initial,'gamma_initial','gamma_initial.nc')
-% save_netcdf03(gamma_initial-gamma_96,'gamma_diff','gamma_diff.nc')
-load('data/gamma_96.mat')
-gamma_initial=gamma_96;
-%gamma_initial(:)=0;
-%gamma_initial=p/max(p(:));
-save('data/gamma_initial.mat','gamma_initial')
+
+tis=gsw_t_from_CT(SA(:,ibb),CT(:,ibb),p(:,ibb)); % in-situ
+gbdy=gamma_n(SA(:,ibb),tis,p(:,ibb),lon(1,ibb),lat(1,ibb));
+
+% construct initial data set
+igood=~isnan(gbdy);
+dgam=diff(gbdy);
+dgam=dgam(igood); dgam=dgam(1:end-1);
+dgam=mean(dgam(end-5:end)); % take the mean of the 5 deepest values.
+g_deepest=gbdy(sum(igood));
+fill=g_deepest+dgam*(1:sum(~igood));
+gbdy(~igood)=fill;
+gamma_initial=repmat(gbdy,[1,ny,nx]);
 gamma_initial=gamma_initial(gam);
+%keyboard
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

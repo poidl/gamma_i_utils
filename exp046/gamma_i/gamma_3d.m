@@ -136,7 +136,7 @@ i_s_lower=i_s(j_s_l);
 % boundary
 %bdy= 170<=lon(:) & lon(:)<=270 & -10<=lat(:) & lat(:)<=10;
 %bdy= 179<=lon(:) & lon(:)<=181 & -5<=lat(:) & lat(:)<=-3; % 16 S, 188 E
-bdy= 187<=lon(:) & lon(:)<=189 & -17<=lat(:) & lat(:)<=-15; % 16 S, 188 E
+bdy= 188<=lon(:) & lon(:)<=188.5 & -16.5<=lat(:) & lat(:)<=-16; % 16 S, 188 E
 if sum(bdy)~=nz
     disp('WARNING: multiple backbones (or none at all)')
     keyboard
@@ -213,10 +213,10 @@ A = sparse(irow,jcol,coeff,neq_total,nox);
 %keyboard
 % save_netcdf03(gamma_initial,'gamma_initial','gamma_initial.nc')
 % save_netcdf03(gamma_initial-gamma_96,'gamma_diff','gamma_diff.nc')
-load('data/gamma_96.mat')
-gamma_initial=gamma_96;
+%load('data/gamma_96.mat')
+%gamma_initial=gamma_96;
 %gamma_initial(:)=0;
-%gamma_initial=p/max(p(:));
+gamma_initial=p/max(p(:));
 save('data/gamma_initial.mat','gamma_initial')
 gamma_initial=gamma_initial(gam);
 
@@ -251,8 +251,8 @@ gamma_i=nan*gam;
 gamma_i(gam)=gamma;
 gamma_i=reshape(gamma_i,[nz,ny,nx]);
 
+keyboard
 
-save('data/gamma_i.mat','gamma_i')
 
 gamma_i(isnan(SA(:)))=nan;
 plt( squeeze(gamma_i(:,:,1)) );
@@ -262,6 +262,9 @@ plt( squeeze(gamma_i(:,:,1)) );
 %keyboard
 %cregs=find_coupled(A);
 
+save('data/gamma_i.mat','gamma_i')
+save_netcdf03(gamma_i,'gamma_i','data/gamma_i.nc')
+save_netcdf03(SA,'s','data/s.nc')
 
 vars={'gamma_i','gamma_initial','A','b'};
 save('data/lsqr_input.mat',vars{:});

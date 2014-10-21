@@ -7,14 +7,34 @@ addpath(genpath('../../../omega/ansu_utils/external_scripts/'))
 addpath(genpath('.'))
 
 tic
-[s,ct,p,gamma_96,lats,longs]=gammanc_to_sctp;
 
-[s,ct,gamma_96]=make_mask_96(s,ct,p,gamma_96,longs,lats);
+fname='/home/nfs/z3439823/models/nemo/nemo.nc';
+lats=ncread(fname,'lat');
+longs=ncread(fname,'lon');
+p=ncread(fname,'p');
+s=ncread(fname,'s');
+tpot=ncread(fname,'tpot');
 
+lats=permute(lats, [3 2 1]);
+longs=permute(longs, [3 2 1]);
+p=permute(p, [3 2 1]);
+s=permute(s, [3 2 1]);
+tpot=permute(tpot, [3 2 1]);
+
+ct=gsw_CT_from_pt(s,tpot);
+keyboard
+% remove deepest data point ('partial step level', see Julien's email)
+sl=circshift(s,[-1 0 0]);
+in= ~isnan(s) & isnan(sl);
+in(end,:,:)=false;
+s(in)=nan;
+ct(in)=nan;
+
+%keyboard
 vars = {'s','ct','p','lats','longs'};
 save('data/input_data.mat',vars{:})
 
-save('data/gamma_96.mat', 'gamma_96') % for boundary condition
+%save('data/gamma_96.mat', 'gamma_96') % for boundary condition
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
