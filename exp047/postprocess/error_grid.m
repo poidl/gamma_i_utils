@@ -84,6 +84,9 @@ function [sdx,sdy]=error_iso(va,s,ct,p,dx,dy)
             psurf=psurf';
         end
         
+% simpler than delta_slope; slope difference is only calculated in the
+% positive directions here.
+
         vpx=var_on_surf_stef(pe,vae,vsurf);
         vsx=(vpx-psurf)./dx;        
         vpy=var_on_surf_stef(pn,van,vsurf);

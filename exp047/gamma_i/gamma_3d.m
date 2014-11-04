@@ -1,12 +1,11 @@
-function gamma_i = gamma_3d(SA,CT,p,lon,lat,dx,dy,dz)
-
+function gamma_i = gamma_3d(SA,CT,p,lon,lat)
 
 % Written by D.R. Jackett
 % Modified by P.M. Barker (2014)
 % Modified by S. Riha (2014)
 % Principal Investigator: T.J. McDougall
 
-addpath(genpath('/home/z3439823/mymatlab/gamma')) % for calling gamma_n()
+%error('there are decoupled systems of equations')
 
 [nz,ny,nx] = size(SA);
 
@@ -68,7 +67,7 @@ sreg(~gam)=nan;
 [j_w,j_w_lower,j_w_l]=get_jcols(sreg, nz*ny,k_west);
 [j_n,j_n_lower,j_n_l]=get_jcols(sreg,   -nz,k_north);
 [j_s,j_s_lower,j_s_l]=get_jcols(sreg,    nz,k_south);
-
+%keyboard
 east = east(gam);
 west = west(gam);
 north = north(gam); 
@@ -136,9 +135,7 @@ i_s_lower=i_s(j_s_l);
 
 
 % boundary
-% find point closest to 16 S, 188 E
-lvec=[lon(1,:)'-188,lat(1,:)'+16]; 
-[~,ibb]=min(lvec(:,1).^2+lvec(:,2).^2);
+ibb=backbone_index(squeeze(lon(1,:,:)),squeeze(lat(1,:,:)));
 bdy=false(nz,ny,nx);
 bdy(:,ibb)=true;
 %keyboard
@@ -214,16 +211,20 @@ A = sparse(irow,jcol,coeff,neq_total,nox);
 
 
 tis=gsw_t_from_CT(SA(:,ibb),CT(:,ibb),p(:,ibb)); % in-situ
-gbdy=gamma_n(SA(:,ibb),tis,p(:,ibb),lon(1,ibb),lat(1,ibb));
+%keyboard
+gbdy=get_gamma_n(SA(:,ibb),tis,p(:,ibb),lon(:,ibb),lat(:,ibb));
+%keyboard
 
 % construct initial data set
 igood=~isnan(gbdy);
-dgam=diff(gbdy);
-dgam=dgam(igood); dgam=dgam(1:end-1);
-dgam=mean(dgam(end-5:end)); % take the mean of the 5 deepest values.
-g_deepest=gbdy(sum(igood));
-fill=g_deepest+dgam*(1:sum(~igood));
-gbdy(~igood)=fill;
+if ~all(igood) % fill in some values at the bottom 
+    dgam=diff(gbdy);
+    dgam=dgam(igood); dgam=dgam(1:end-1);
+    dgam=mean(dgam(end-5:end)); % take the mean of the 5 deepest values.
+    g_deepest=gbdy(sum(igood));
+    fill=g_deepest+dgam*(1:sum(~igood));
+    gbdy(~igood)=fill;
+end
 gamma_initial=repmat(gbdy,[1,ny,nx]);
 gamma_initial=gamma_initial(gam);
 %keyboard
@@ -250,7 +251,13 @@ if 1
 else
     gamma = (A'*A)\(A'*b);
 end
+display('testing for decoupled systems')
+b_test_coupled=[zeros(neq_lateral,1); w_bdy.*ones(sum(bdy(gam)),1)];
+[gamma_,flag]=lsqr(A,b_test_coupled,1e-15,1000,[],[],0*gamma_initial(:));
+gamma(gamma_==0)=nan;
+
 % set points where no equation exists to nan (their value hasn't changed from the initial condition)
+% this is not necessary when testing for decoupled systems
 su=sum(abs(A));
 no_equation=su==0;
 %no_equation=all(A==0);
@@ -260,51 +267,27 @@ gamma_i(gam)=gamma;
 gamma_i=reshape(gamma_i,[nz,ny,nx]);
 
 
-save('data/gamma_i.mat','gamma_i')
 
-gamma_i(isnan(SA(:)))=nan;
-plt( squeeze(gamma_i(:,:,1)) );
+save('data/gamma_i.mat','gamma_i')
+save_netcdf03(gamma_i,'gamma_i','data/gamma_i.nc')
+%gamma_i(isnan(SA(:)))=nan;
+%plt( squeeze(gamma_i(:,:,1)) );
 % rpot=gsw_rho(SA,CT,0*p);
 % plt( squeeze(rpot(:,:,1)) );
 
 %keyboard
 %cregs=find_coupled(A);
 
-
 vars={'gamma_i','gamma_initial','A','b'};
 save('data/lsqr_input.mat',vars{:});
-keyboard
+%keyboard
+
+
+
+
 end
 
-function cregs=find_coupled(A)
-    error('this doesn''t work I think?')
-    [m,n]=size(A);
-    cregs=nan*ones(n,1);
 
-    done_r=[];
-    list_r=1; % row list
-    ireg=1;
-    keyboard
-    while any(isnan(cregs))
-        while ~isempty(list_r);
-            r=list_r(1);
-            cols=find(A(r,:)~=0);
-            cregs(cols)=ireg;
-            for c=cols
-                rows=find(A(:,c)~=0);
-                list_r=[list_r;rows];
-            end   
-            list_r=unique(list_r);            
-            done_r=[done_r,r];
-            list_r=setdiff(list_r,done_r);
-        end
-        keyboard
-        A=A(~done_r,:);
-        done_r=[];
-        list_r=1; % row list
-        ireg=ireg+1;
-    end 
-end
 
 % function [j,j_lower]=get_jcols(sreg,shift,k)
 %     good=~isnan(k(:));

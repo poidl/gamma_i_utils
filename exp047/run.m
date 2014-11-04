@@ -4,13 +4,17 @@ close all
 restoredefaultpath
 addpath(genpath('../../../gsw_matlab_v3_02'))
 addpath(genpath('../../../omega/ansu_utils/external_scripts/'))
+addpath(genpath('../../../omega/ansu_utils/exp644/')) % for backbone_index
+%addpath(genpath('/home/z3439823/mymatlab/gamma')) % for calling gamma_n()
+addpath(genpath('../../../gamma_n'))
 addpath(genpath('.'))
 
 tic
 [s,ct,p,gamma_96,lats,longs]=gammanc_to_sctp;
 
 [s,ct,gamma_96]=make_mask_96(s,ct,p,gamma_96,longs,lats);
-
+longs=double(longs);
+lats=double(lats);
 vars = {'s','ct','p','lats','longs'};
 save('data/input_data.mat',vars{:})
 
@@ -108,7 +112,6 @@ plt_transect
 
 lon=longs;
 lat=lats;
-
 
 gamma_i = gamma_3d(s,ct,p,lon,lat);
 
