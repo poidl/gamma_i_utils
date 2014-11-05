@@ -15,7 +15,7 @@ user_input;
 % [I_bg, gamma_bdry] = gamma_boundary_gammas(gamma_initial,lon,lat);
 
 tic
-if 1
+if 0
     write=true;
     % east
     [k_east,r_east] = gamma_intersections(SA,CT,p,-ny);
@@ -211,7 +211,6 @@ A = sparse(irow,jcol,coeff,neq_total,nox);
 
 
 tis=gsw_t_from_CT(SA(:,ibb),CT(:,ibb),p(:,ibb)); % in-situ
-%keyboard
 gbdy=get_gamma_n(SA(:,ibb),tis,p(:,ibb),lon(:,ibb),lat(:,ibb));
 %keyboard
 
