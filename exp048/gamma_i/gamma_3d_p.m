@@ -210,9 +210,9 @@ A = sparse(irow,jcol,coeff,neq_total,nox);
 % gamma_initial(13:15)=gi(13:15);
 
 
-tis=gsw_t_from_CT(SA(:,ibb),CT(:,ibb),p(:,ibb)); % in-situ
-gbdy=get_gamma_n(SA(:,ibb),tis,p(:,ibb),lon(:,ibb),lat(:,ibb));
-%keyboard
+%tis=gsw_t_from_CT(SA(:,ibb),CT(:,ibb),p(:,ibb)); % in-situ
+%gbdy=get_gamma_n(SA(:,ibb),tis,p(:,ibb),lon(:,ibb),lat(:,ibb));
+gbdy=p(:,ibb);
 
 % construct initial data set
 igood=~isnan(gbdy);

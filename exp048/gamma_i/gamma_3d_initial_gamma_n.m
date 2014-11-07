@@ -15,7 +15,7 @@ user_input;
 % [I_bg, gamma_bdry] = gamma_boundary_gammas(gamma_initial,lon,lat);
 
 tic
-if 0
+if 1
     write=true;
     % east
     [k_east,r_east] = gamma_intersections(SA,CT,p,-ny);
@@ -210,21 +210,23 @@ A = sparse(irow,jcol,coeff,neq_total,nox);
 % gamma_initial(13:15)=gi(13:15);
 
 
-tis=gsw_t_from_CT(SA(:,ibb),CT(:,ibb),p(:,ibb)); % in-situ
-gbdy=get_gamma_n(SA(:,ibb),tis,p(:,ibb),lon(:,ibb),lat(:,ibb));
+tis=gsw_t_from_CT(SA(:,:),CT(:,:),p(:,:)); % in-situ
+%gbdy=get_gamma_n(SA(:,ibb),tis,p(:,ibb),lon(:,ibb),lat(:,ibb));
 %keyboard
 
-% construct initial data set
-igood=~isnan(gbdy);
-if ~all(igood) % fill in some values at the bottom 
-    dgam=diff(gbdy);
-    dgam=dgam(igood); dgam=dgam(1:end-1);
-    dgam=mean(dgam(end-5:end)); % take the mean of the 5 deepest values.
-    g_deepest=gbdy(sum(igood));
-    fill=g_deepest+dgam*(1:sum(~igood));
-    gbdy(~igood)=fill;
-end
-gamma_initial=repmat(gbdy,[1,ny,nx]);
+% % construct initial data set
+% igood=~isnan(gbdy);
+% if ~all(igood) % fill in some values at the bottom 
+%     dgam=diff(gbdy);
+%     dgam=dgam(igood); dgam=dgam(1:end-1);
+%     dgam=mean(dgam(end-5:end)); % take the mean of the 5 deepest values.
+%     g_deepest=gbdy(sum(igood));
+%     fill=g_deepest+dgam*(1:sum(~igood));
+%     gbdy(~igood)=fill;
+% end
+% gamma_initial=repmat(gbdy,[1,ny,nx]);
+% gamma_initial=gamma_initial(gam);
+gamma_initial=get_gamma_n(SA(:,:),tis,p(:,:),lon(:,:),lat(:,:));
 gamma_initial=gamma_initial(gam);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
