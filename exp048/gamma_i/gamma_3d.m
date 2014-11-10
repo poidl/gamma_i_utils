@@ -15,7 +15,7 @@ user_input;
 % [I_bg, gamma_bdry] = gamma_boundary_gammas(gamma_initial,lon,lat);
 
 tic
-if 0
+if 1
     write=true;
     % east
     [k_east,r_east] = gamma_intersections(SA,CT,p,-ny);
@@ -52,7 +52,7 @@ else
 end
 display(['Runtime spent on root finding: ',num2str(toc),' seconds'])
 
-gam=~isnan(SA(:));
+wet=~isnan(SA(:)); %
 east=~isnan(k_east(:));
 west=~isnan(k_west(:));
 north=~isnan(k_north(:));
@@ -60,24 +60,26 @@ south=~isnan(k_south(:));
 
 
 % numbering well definied gammas
-sreg=cumsum(gam);
-sreg(~gam)=nan;
+sreg=cumsum(wet);
+sreg(~wet)=nan;
 
-[j_e,j_e_lower,j_e_l]=get_jcols(sreg,-nz*ny,k_east);
+% get index of vertically adjacent point pair between which we do the linear
+% interpolation. j_e is the index of the upper bottle.
+[j_e,j_e_lower,j_e_l]=get_jcols(sreg,-nz*ny,k_east); 
 [j_w,j_w_lower,j_w_l]=get_jcols(sreg, nz*ny,k_west);
 [j_n,j_n_lower,j_n_l]=get_jcols(sreg,   -nz,k_north);
 [j_s,j_s_lower,j_s_l]=get_jcols(sreg,    nz,k_south);
-%keyboard
-east = east(gam);
-west = west(gam);
-north = north(gam); 
-south = south(gam);
-r_east=r_east(gam);
-r_west=r_west(gam);
-r_north=r_north(gam);
-r_south=r_south(gam);
 
-nox=sum(gam); % number of unknowns
+east = east(wet);
+west = west(wet);
+north = north(wet); 
+south = south(wet);
+r_east=r_east(wet);
+r_west=r_west(wet);
+r_north=r_north(wet);
+r_south=r_south(wet);
+
+nox=sum(wet); % number of unknowns
 no_eq= east+west+north+south; % number of lateral equations at grid point 
 neq=sum(no_eq); % number of lateral equations
 
@@ -122,7 +124,7 @@ for ix=1:nox
     end
     jstart=jend+1;    
 end
-%gam
+%wet
 
 % i_e_lower=i_e; % row index of matrix coef. -r
 % i_w_lower=i_w;
@@ -139,7 +141,7 @@ ibb=backbone_index(squeeze(lon(1,:,:)),squeeze(lat(1,:,:)));
 bdy=false(nz,ny,nx);
 bdy(:,ibb)=true;
 %keyboard
-bdy= gam & bdy(:);
+bdy= wet & bdy(:);
 
 j1_bdy= sreg(bdy); % column indices for matrix coef. 1
 i1_bdy=(neq+1:neq+sum(bdy));
@@ -175,7 +177,7 @@ w_bdy=ones(sum(bdy),1);
 %[n2,pmid]=gsw_Nsquared(SA,CT,p);
 %n2=cat(1,n2,n2(end,:,:));
 %keyboard
-%[c1,ce1,ce2,cw1,cw2,cn1,cn2,cs1,cs2]=weighting_coeffs_N2(n2,gam,...
+%[c1,ce1,ce2,cw1,cw2,cn1,cn2,cs1,cs2]=weighting_coeffs_N2(n2,wet,...
 %                   j1,i_e,i_e_lower,i_w,i_w_lower,i_n,i_n_lower,i_s,i_s_lower);
 
 %w_bdy=1./n2(bdy);
@@ -225,11 +227,11 @@ if ~all(igood) % fill in some values at the bottom
     gbdy(~igood)=fill;
 end
 gamma_initial=repmat(gbdy,[1,ny,nx]);
-gamma_initial=gamma_initial(gam);
+gamma_initial=gamma_initial(wet);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-b=[zeros(neq_lateral,1); w_bdy.*gamma_initial(bdy(gam))];
+b=[zeros(neq_lateral,1); w_bdy.*gamma_initial(bdy(wet))];
 
 if 1
     %gamma = lsqr(A,b,1e-15,10000,[],[],gamma_initial(:));
@@ -251,7 +253,7 @@ else
 end
 
 % testing for decoupled systems
-b_test_coupled=[zeros(neq_lateral,1); w_bdy.*ones(sum(bdy(gam)),1)];
+b_test_coupled=[zeros(neq_lateral,1); w_bdy.*ones(sum(bdy(wet)),1)];
 [gamma_,flag]=lsqr(A,b_test_coupled,1e-15,1000,[],[],0*gamma_initial(:));
 idecoupled=gamma_==0;
 disp(['Number of decoupled points: ',num2str(sum(idecoupled))])
@@ -265,8 +267,8 @@ gamma(gamma_==0)=nan;
 % gamma(no_equation)=nan;
 
 
-gamma_i=nan*gam;
-gamma_i(gam)=gamma;
+gamma_i=nan*wet;
+gamma_i(wet)=gamma;
 gamma_i=reshape(gamma_i,[nz,ny,nx]);
 
 save('data/gamma_i.mat','gamma_i')
@@ -275,7 +277,7 @@ save_netcdf03(gamma_i,'gamma_i','data/gamma_i.nc')
 % some useful output
 
 isdecoupled=zeros(nz,ny,nx);
-isdecoupled(gam)=~gamma_;
+isdecoupled(wet)=~gamma_;
 isdecoupled(isdecoupled==0)=nan;
 save_netcdf03(isdecoupled,'isdecoupled','data/isdecoupled.nc')
 
@@ -287,43 +289,34 @@ save('data/lsqr_input.mat',vars{:});
 end
 
 
-
-% function [j,j_lower]=get_jcols(sreg,shift,k)
-%     good=~isnan(k(:));
-%     sreg_shifted=circshift(sreg,shift);
-%     k_flat=flatten3d(k);
-%     k_flat(~good)=1; % dummy
-%     j=sreg_shifted(k_flat); % column index of matrix coef. -(1-r)
-%     j=j(good);
-%     if min(j(:))==0
-%         keyboard
-%     end
-%     j_lower= j+1; % column index of matrix coef. -r
-%     outside=find(j_lower==length(good)+1);
-%     if ~isempty(outside)
-%         keyboard
-%         j_lower(outside)=1; % dummy
-%     end 
-% end
-
 function [j,j_lower,good_lower]=get_jcols(sreg,shift,k)
-    [nz,ny,nx]=size(k);
-    good=~isnan(k(:));
-    sreg_shifted=circshift(sreg,shift);
-    k_flat=flatten3d(k);
-    k_flat(~good)=1; % dummy
-    j=sreg_shifted(k_flat); % column index of matrix coef. -(1-r)
-    j=j(good);
+    % find the wet indices of the vertically adjacent point pair between
+    % which we do the linear interpolation
+    % sreg and k have the shape of the original grid. 
+    % sreg: indices of wet points
+    % k: vertical index of the point above which the characteristic segment intersects 
+    % j: array of indices of upper point
+    % j_lower: array of indices of lower point (possibly smaller than j)
+    % good_lower: logical array of size(j). true if j_lower exists.
     
-    sreg_shifted_vert=circshift(sreg_shifted,-1);
-    sreg_shifted_vert(nz:nz:nz*ny*nx)=nan;
+    [nz,ny,nx]=size(k);
+    good=~isnan(k(:)); % characteristic segments don't exist in every direction.
+    sreg_shifted=circshift(sreg,shift);
+    k_flat=flatten3d(k); % from vertical index to global index
+    k_flat(~good)=1; % dummy. in next line k_flat is used as index. can't be nan.
+    j=sreg_shifted(k_flat); % column index of matrix coef. -(1-r)
+    j=j(good); % remove dummies
+    
+    sreg_shifted_vert=circshift(sreg_shifted,-1); % index of point below
+    sreg_shifted_vert(nz:nz:nz*ny*nx)=nan; % points below bottom are nan
 
     j_lower=sreg_shifted_vert(k_flat);
-    j_lower=j_lower(good);
-    good_lower=~isnan(j_lower);
+    j_lower=j_lower(good); % discard index of lower point if there is no char. seg.
     
+    good_lower=~isnan(j_lower); % the index of lower point could be nan, in case the char. seg. intersects exactly with upper point
     j_lower=j_lower(good_lower);
 end
+
 
 function var=flatten3d(var)
     var=var(:,:);
@@ -334,11 +327,5 @@ function var=flatten3d(var)
     var=var(:);  
 end
 
-function plt(va)
-    figure()
-    %h=imagesc(lats(1,:,1),p(:,1,1),va);
-    h=imagesc(va);
-    set(h,'alphadata',~isnan(va))
-    colorbar()
-end
+
 
