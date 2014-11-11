@@ -1,4 +1,4 @@
-function gamma_i = gamma_3d(SA,CT,p,lon,lat)
+function gamma_i = gamma_3d(s,ct,p,lon,lat)
 
 % Written by D.R. Jackett
 % Modified by P.M. Barker (2014)
@@ -7,68 +7,25 @@ function gamma_i = gamma_3d(SA,CT,p,lon,lat)
 
 %error('there are decoupled systems of equations')
 
-[nz,ny,nx] = size(SA);
+[nz,ny,nx] = size(s);
 
 user_input;
 
 % %load gk_interp_gamma_boundary
 % [I_bg, gamma_bdry] = gamma_boundary_gammas(gamma_initial,lon,lat);
-
 tic
 if 0
-    write=true;
-    % east
-    [k_east,r_east] = gamma_intersections(SA,CT,p,-ny);
-    if ~zonally_periodic
-        k_east(:,:,end)=nan;
-        r_east(:,:,end)=nan;
-    end
-
-    % west
-    [k_west,r_west] = gamma_intersections(SA,CT,p,ny);
-    if ~zonally_periodic
-        k_west(:,:,1)=nan;
-        r_west(:,:,1)=nan;
-    end
-    
-    % north
-    [k_north,r_north] = gamma_intersections(SA,CT,p,-1);
-    k_north(:,end,:)=nan;
-    r_north(:,end,:)=nan;
-    
-    % south
-    [k_south,r_south] = gamma_intersections(SA,CT,p,1);
-    k_south(:,1,:)=nan;
-    r_south(:,1,:)=nan;
-    
-    if write   
-        vars = {'k_east', 'r_east','k_west', 'r_west',...
-            'k_north', 'r_north','k_south', 'r_south'};
-        save('./data/intersections.mat', vars{:});  
-    end
-    
+    make_intersections(s,ct,p);
 else    
     load('./data/intersections.mat');  
 end
 display(['Runtime spent on root finding: ',num2str(toc),' seconds'])
 
-wet=~isnan(SA(:)); %
+wet=~isnan(s(:)); %
 east=~isnan(k_east(:));
 west=~isnan(k_west(:));
 north=~isnan(k_north(:));
 south=~isnan(k_south(:));
-
-
-% numbering wet data points
-sreg=cumsum(wet);
-sreg(~wet)=nan;
-
-% get index of vertically adjacent point pair between which we do the linear
-% interpolation. j_e is the index of the upper bottle.
-[j_e,j_e_lower,j_e_l]=get_jcols(sreg,-nz*ny,k_east); 
-[j_w,j_w_lower,j_w_l]=get_jcols(sreg, nz*ny,k_west);
-[j_n,j_n_lower,j_n_l]=get_jcols(sreg,   -nz,k_north);
-[j_s,j_s_lower,j_s_l]=get_jcols(sreg,    nz,k_south);
 
 east = east(wet);
 west = west(wet);
@@ -79,88 +36,11 @@ r_west=r_west(wet);
 r_north=r_north(wet);
 r_south=r_south(wet);
 
-nox=sum(wet); % number of unknowns
-no_eq= east+west+north+south; % number of lateral equations at grid point 
-neq=sum(no_eq); % number of lateral equations
-
-i1=1:neq; % row index of matrix coef. 1
-j1=nan*ones(neq,1); % column index of matrix coef. 1
-
-i_e=nan*ones(1,length(j_e)); % row index of matrix coef. -(1-r)
-i_w=nan*ones(1,length(j_w));
-i_n=nan*ones(1,length(j_n)); 
-i_s=nan*ones(1,length(j_s)); 
-
-jstart=1;
-c_e=1; % counter east
-c_w=1; % counter west
-c_n=1; % counter north
-c_s=1; % counter south
-
-for ix=1:nox
-
-    jend=jstart+no_eq(ix)-1;
-    j1(jstart:jend)=ix;
-    cnt=0;
-    if east(ix)
-        i_e(c_e)=jstart+cnt;
-        cnt=cnt+1;
-        c_e=c_e+1;
-    end
-    if west(ix)
-        i_w(c_w)=jstart+cnt;
-        cnt=cnt+1;   
-        c_w=c_w+1;
-    end
-    if north(ix)
-        i_n(c_n)=jstart+cnt;
-        cnt=cnt+1;  
-        c_n=c_n+1;
-    end
-    if south(ix)
-        i_s(c_s)=jstart+cnt;
-        cnt=cnt+1; 
-        c_s=c_s+1;        
-    end
-    jstart=jend+1;    
-end
-%wet
-
-% i_e_lower=i_e; % row index of matrix coef. -r
-% i_w_lower=i_w;
-% i_n_lower=i_n;
-% i_s_lower=i_s;
-i_e_lower=i_e(j_e_l); % row index of matrix coef. -r
-i_w_lower=i_w(j_w_l);
-i_n_lower=i_n(j_n_l);
-i_s_lower=i_s(j_s_l);
-
-
-% boundary
 ibb=backbone_index(squeeze(lon(1,:,:)),squeeze(lat(1,:,:)));
-bdy=false(nz,ny,nx);
-bdy(:,ibb)=true;
-%keyboard
-bdy= wet & bdy(:);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+[irow,jcol,n_total,n_lateral,m,j_e_l,j_w_l,j_n_l,j_s_l,bdy]=matrix_ij(wet,k_east,k_west,k_north,k_south,ibb);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-j1_bdy= sreg(bdy); % column indices for matrix coef. 1
-i1_bdy=(neq+1:neq+sum(bdy));
-neq_lateral=neq;
-neq_total=neq+sum(bdy);
-%keyboard
-
-irow=[i1,i_e,i_e_lower,...
-         i_w,i_w_lower,...
-         i_n,i_n_lower,...
-         i_s,i_s_lower,... 
-         i1_bdy];
-  
-jcol=[j1;j_e;j_e_lower;...
-         j_w;j_w_lower;...
-         j_n;j_n_lower;...
-         j_s;j_s_lower;...
-         j1_bdy];
-     
 r_e=r_east(east);
 r_w=r_west(west);
 r_n=r_north(north);
@@ -168,13 +48,14 @@ r_s=r_south(south);
      
 
 c1=1; ce1=1; ce2=1; cw1=1; cw2=1; cn1=1; cn2=1; cs1=1; cs2=1;
-w_bdy=ones(sum(bdy),1);
+n_bdy=n_total-n_lateral;
+w_bdy=ones(n_bdy,1);
 % get N2
 %keyboard
-%[n2,~]=n2_smooth(SA,CT,p);
+%[n2,~]=n2_smooth(s,ct,p);
 %n2(n2(:)<=1e-6)=1e-6;
 
-%[n2,pmid]=gsw_Nsquared(SA,CT,p);
+%[n2,pmid]=gsw_Nsquared(s,ct,p);
 %n2=cat(1,n2,n2(end,:,:));
 %keyboard
 %[c1,ce1,ce2,cw1,cw2,cn1,cn2,cs1,cs2]=weighting_coeffs_N2(n2,wet,...
@@ -182,21 +63,21 @@ w_bdy=ones(sum(bdy),1);
 
 %w_bdy=1./n2(bdy);
 
-coeff=[c1.*ones(neq_lateral,1); -ce1.*(1-r_e); -ce2.*r_e(j_e_l); ...
+coeff=[c1.*ones(n_lateral,1); -ce1.*(1-r_e); -ce2.*r_e(j_e_l); ...
                                 -cw1.*(1-r_w); -cw2.*r_w(j_w_l); ...    
                                 -cn1.*(1-r_n); -cn2.*r_n(j_n_l); ...
                                 -cs1.*(1-r_s); -cs2.*r_s(j_s_l); ...
-          w_bdy.*ones(sum(bdy),1)];
+          w_bdy.*ones(n_bdy,1)];
                   
-
-A = sparse(irow,jcol,coeff,neq_total,nox);
+% keyboard
+A = sparse(irow,jcol,coeff,n_total,m);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % initial condition 
 
 %Initial estimate of the neutral surface - it would be better to use a
 %locally referenced density surface.
-%gamma_initial = gamma_rf(SA,CT); % (SA,CT,p,lon,lat);
+%gamma_initial = gamma_rf(s,ct); % (s,ct,p,lon,lat);
 
 % % analytic initial condition:
 % gamma_initial=ones(nz,ny,nx);
@@ -206,14 +87,14 @@ A = sparse(irow,jcol,coeff,neq_total,nox);
 % gamma_initial(:,1,:)=south;
 % gamma_initial(:,2,:)=mid;
 % gamma_initial(:,3,:)=north;
-% gamma_initial(isnan(SA(:)))=nan;
+% gamma_initial(isnan(s(:)))=nan;
 % gi=gamma_initial; % this is the analytic solution;
 % %gamma_initial=gi+1e-1*randn(size(gi)); % perturb analytic solution to create interesting initial condition
 % gamma_initial(13:15)=gi(13:15);
 
 
-tis=gsw_t_from_CT(SA(:,ibb),CT(:,ibb),p(:,ibb)); % in-situ
-gbdy=get_gamma_n(SA(:,ibb),tis,p(:,ibb),lon(:,ibb),lat(:,ibb));
+tis=gsw_t_from_CT(s(:,ibb),ct(:,ibb),p(:,ibb)); % in-situ
+gbdy=get_gamma_n(s(:,ibb),tis,p(:,ibb),lon(:,ibb),lat(:,ibb));
 %keyboard
 
 % construct initial data set
@@ -231,7 +112,7 @@ gamma_initial=gamma_initial(wet);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-b=[zeros(neq_lateral,1); w_bdy.*gamma_initial(bdy(wet))];
+b=[zeros(n_lateral,1); w_bdy.*gamma_initial(bdy(wet))];
 
 if 1
     %gamma = lsqr(A,b,1e-15,10000,[],[],gamma_initial(:));
@@ -253,7 +134,7 @@ else
 end
 
 % testing for decoupled systems
-b_test_coupled=[zeros(neq_lateral,1); w_bdy.*ones(sum(bdy(wet)),1)];
+b_test_coupled=[zeros(n_lateral,1); w_bdy.*ones(sum(bdy(wet)),1)];
 [gamma_,flag]=lsqr(A,b_test_coupled,1e-15,1000,[],[],0*gamma_initial(:));
 idecoupled=gamma_==0;
 disp(['Number of decoupled points: ',num2str(sum(idecoupled))])
@@ -281,7 +162,7 @@ isdecoupled(wet)=~gamma_;
 isdecoupled(isdecoupled==0)=nan;
 save_netcdf03(isdecoupled,'isdecoupled','data/isdecoupled.nc')
 
-save_netcdf03(SA,'SA','data/SA.nc')
+save_netcdf03(s,'s','data/s.nc')
 
 vars={'gamma_i','gamma_initial','A','b'};
 save('data/lsqr_input.mat',vars{:});
