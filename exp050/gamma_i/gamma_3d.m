@@ -73,19 +73,20 @@ else
     gamma = (A'*A)\(A'*y);
 end
 
-% testing for decoupled systems
-b_test_coupled=[zeros(n_lateral,1); ones(sum(bdy(wet)),1)];
-[gamma_,flag]=lsqr(A,b_test_coupled,1e-15,1000,[],[],0*gamma_initial(:));
-idecoupled=gamma_==0;
-disp(['Number of decoupled points: ',num2str(sum(idecoupled))])
-gamma(gamma_==0)=nan;
+cr=get_coupled_regions(A);
+disp(['Number of decoupled regions (incl. backbone region): ',num2str(length(cr))])
+idecoupled=[];
+for ii=1:length(cr)
+    reg=cr{ii};
+    if ~ismember(ibb,reg) % will not work if there is sea ice
+        idecoupled=[idecoupled;reg];
+    end
+end
+disp(['Number of grid points decoupled from backbone: ', num2str(length(idecoupled))])
 
-% set points where no equation exists to nan (their value hasn't changed from the initial condition)
-% not necessary/effective when testing for decoupled systems
-% su=sum(abs(A));
-% no_equation=su==0;
-% %no_equation=all(A==0);
-% gamma(no_equation)=nan;
+
+gamma(idecoupled)=nan; % setting decoupled points to nan
+
 
 
 gamma_i=nan*wet;
