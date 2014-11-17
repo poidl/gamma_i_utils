@@ -15,7 +15,7 @@ user_input;
 % [I_bg, gamma_bdry] = gamma_boundary_gammas(gamma_initial,lon,lat);
 
 tic
-if 0
+if 1
     write=true;
     % east
     [k_east,r_east] = gamma_intersections(SA,CT,p,-ny);

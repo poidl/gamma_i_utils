@@ -1,6 +1,18 @@
-function    coeff=matrix_coef_lateral(r_e,  r_w,  r_n,  r_s,...
+function    coeff=matrix_coef_lateral(wet,...
+                                      k_east,k_west,k_north,k_south,...
+                                      r_east,r_west,r_north,r_south,...  
                                       j_e_l,j_w_l,j_n_l,j_s_l,...
                                       n_lateral)
+
+east= ~isnan(k_east(:))  & wet(:); % estward equation exists
+west= ~isnan(k_west(:))  & wet(:);
+north=~isnan(k_north(:)) & wet(:);
+south=~isnan(k_south(:)) & wet(:);
+
+r_e=r_east(east);
+r_w=r_west(west);
+r_n=r_north(north);
+r_s=r_south(south);
                           
 c1=1; ce1=1; ce2=1; cw1=1; cw2=1; cn1=1; cn2=1; cs1=1; cs2=1;
 %n_bdy=n_total-n_lateral;

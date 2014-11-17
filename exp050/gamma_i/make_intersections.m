@@ -1,5 +1,6 @@
 function make_intersections(s,ct,p)
 
+user_input;
 [nz,ny,nx]=size(s);
 
 write=true;
